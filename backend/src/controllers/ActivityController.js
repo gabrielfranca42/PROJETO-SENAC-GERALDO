@@ -1,4 +1,4 @@
-const ActivityService = require('../services/ActivityService');
+const ActivityService = require('../services/activityService');
 const EmailService = require('../services/EmailService');
 const FileProcessingService = require('../services/FileProcessingService'); // Novo Service Injetado
 const User = require('../models/User');
