@@ -1,6 +1,4 @@
-Conforme solicitado, a documentação foi atualizada para incluir a seção de **Status de Implementação**, detalhando os componentes técnicos que já foram codificados e estão operacionais conforme os arquivos fornecidos.
 
----
 
 # DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END (ATUALIZADA)
 
