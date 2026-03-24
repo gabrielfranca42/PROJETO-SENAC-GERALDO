@@ -14,4 +14,11 @@ router.post(
   ActivityController.submitActivity
 );
 
+// PUT: Coordenador avalia uma atividade.
+router.put(
+  '/:id/evaluate',
+  authorize(['COORDINATOR']), // Lembrando que nosso authorize já dá bypass para SUPER_ADMIN
+  ActivityController.evaluateActivity
+);
+
 module.exports = router;
