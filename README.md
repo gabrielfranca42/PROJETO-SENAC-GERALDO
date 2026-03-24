@@ -1,44 +1,52 @@
+Aqui está a documentação técnica atualizada e consolidada, agora incluindo os fluxos completos de Autenticação (Login) e Gestão de Identidade (Registro de Usuários), fundamentais para o funcionamento do sistema de permissões.
 
+---
 
-# DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END (ATUALIZADA)
+# DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END (VERSÃO FINAL - FASE 1)
 
 ## 1. Status de Implementação (O que já foi feito)
 
-Abaixo estão os componentes técnicos já estruturados e fundamentados na lógica de persistência e segurança:
+A arquitetura do sistema foi estruturada para garantir segurança, escalabilidade e separação de responsabilidades (SRP). Abaixo estão os componentes técnicos finalizados:
 
-### 1.1. Infraestrutura e Containerização
-* **Docker & Docker Compose:** Configuração de ambiente isolado com `Node.js 20-alpine` e `MongoDB 6.0`. Implementação de *multi-stage build* para otimização de imagem.
-* **Conexão com Banco de Dados:** Módulo `src/config/connectDB.js` implementado com tratamento de erros e suporte a variáveis de ambiente (`process.env.MONGO_URI`).
+### 1.1. Infraestrutura e Orquestração
+* **Docker & Docker Compose:** Ambiente isolado com `Node.js 20-alpine` e `MongoDB 6.0`.
+* **Separação de Contexto:** `server.js` atua estritamente como *entry point* (escuta de porta e conexão com DB), enquanto `app.js` orquestra middlewares globais (CORS, body-parser) e mapeamento de rotas.
+* **Conexão Mongoose:** Módulo `src/config/connectDB.js` com tratamento de falhas e injeção via `.env`.
 
 ### 1.2. Modelagem de Dados (Camada de Dados)
-* **User Model:** Schema definido com suporte a RBAC (`ADMIN`, `COORDINATOR`, `STUDENT`) e suporte a múltiplos cursos por usuário.
-* **Activity Model:** Estrutura completa para submissão, incluindo campos para auditoria de OCR (`ocrText`) e estados de aprovação (`PENDING`, `APPROVED`, `REJECTED`).
-* **Course & Category Model:** Implementação de subdocumentos para regras de categorias, permitindo limites dinâmicos de horas por curso (ex: Extensão, Pesquisa).
+* **User Model:** Schema com suporte a RBAC (`SUPER_ADMIN`, `COORDINATOR`, `STUDENT`), relacionamento de múltiplos cursos (Multitenancy) e *hash* automático de senhas via `bcryptjs` no evento `pre('save')`.
+* **Activity Model:** Estrutura para submissão de horas, rastreio de texto extraído (`ocrText`) e status (`PENDING`, `APPROVED`, `REJECTED`).
+* **Course & Category Model:** Subdocumentos para regras dinâmicas e limites de horas por área/categoria.
+* **AuditLog Model:** Tabela imutável para rastreabilidade de ações críticas (Quem aprovou qual atividade, quando e por quê).
 
-### 1.3. Segurança e Autorização
-* **RBAC Middleware:** Middleware `authorize.js` funcional, permitindo a proteção de rotas com base no nível de privilégio do usuário autenticado.
+### 1.3. Segurança, Identidade e Autorização
+* **UserController (Registro):** Endpoint para criação de identidades (`STUDENT`, `COORDINATOR`, `SUPER_ADMIN`). O controlador delega a criptografia para a camada de dados e previne e-mails duplicados.
+* **AuthController (Login):** Endpoint de validação de credenciais que emite tokens JWT (RFC 7519). O token encapsula o `id`, a `role` e a lista de `courses` do usuário.
+* **Middleware RBAC (`authRole.js`):** Interceptador HTTP que decodifica o token Bearer, valida permissões por array de *roles* e aplica regra de *Bypass* (Early Return) para o `SUPER_ADMIN`.
+
+### 1.4. Serviços de Domínio (Business Logic)
+* **FileProcessingService:** Motor híbrido que roteia *buffers* de memória baseados no MIME Type (utiliza `pdf-parse` para PDFs e `tesseract.js` para imagens).
+* **EmailService:** Mensageria assíncrona (Event-Driven) via `nodemailer` para notificar coordenadores (novas submissões) e alunos (atualização de status).
+* **ActivityService:** Validador matemático de limites de horas por categoria.
 
 ---
 
 ## 2. Configuração e Inicialização (NPM)
 
-### 2.1. Comandos de Setup
+### 2.1. Dependências do Projeto
 ```bash
-# Inicialização
-npm init -y
+# Dependências Core
+npm install express mongoose dotenv jsonwebtoken cors multer tesseract.js pdf-parse bcryptjs nodemailer
 
-# Instalação de dependências core
-npm install express mongoose dotenv jsonwebtoken cors multer tesseract.js bcryptjs
-
-# Ferramentas de desenvolvimento
+# Dependências de Desenvolvimento
 npm install -D nodemon
 ```
 
 ### 2.2. Scripts do `package.json`
 ```json
 "scripts": {
-  "start": "node server.js",
-  "dev": "nodemon server.js"
+  "start": "node src/server.js",
+  "dev": "nodemon src/server.js"
 }
 ```
 
@@ -48,53 +56,83 @@ npm install -D nodemon
 ```text
 backend/
 ├── src/
-│   ├── config/      # [FEITO] Conexão DB e Dotenv
-│   ├── controllers/ # [PENDENTE] Orquestração de requisições
-│   ├── services/    # [PENDENTE] Lógica de validação de horas
-│   ├── models/      # [FEITO] Schemas Mongoose (User, Activity, Course)
-│   ├── middlewares/ # [FEITO] Auth RBAC
-│   ├── routes/      # [PENDENTE] Definição de endpoints
-│   └── app.js       # [PENDENTE] Configuração Express
-├── server.js        # [FEITO] Entry point
+│   ├── config/      # [FEITO] Conexão DB e variáveis de ambiente (.env)
+│   ├── controllers/ # [FEITO] Orquestração HTTP (Activity, Auth, Course, User)
+│   ├── services/    # [FEITO] Regras de negócio (Activity, FileProcessing, Email)
+│   ├── models/      # [FEITO] Schemas Mongoose (User, Activity, Course, AuditLog)
+│   ├── middlewares/ # [FEITO] Auth RBAC (authRole.js)
+│   ├── routes/      # [FEITO] Endpoints isolados (Auth, Users, Activities, Courses)
+│   └── app.js       # [FEITO] Configuração Express e Middlewares Globais
+├── server.js        # [FEITO] Entry point e Listener HTTP
 └── Dockerfile       # [FEITO] Build de produção
 ```
 
 ---
 
-## 4. Gaps de Requisitos (O que falta implementar)
+## 4. Guia de Uso da API (Fluxo Operacional para Testes)
 
-Com base na análise do projeto `Projeto Integrador 3 2026.1.pdf` e no código , os seguintes itens **faltam** ou precisam de implementação para atingir 100% de conformidade:
+Para homologar a aplicação em ferramentas como Insomnia ou Postman, siga o fluxo de integração abaixo:
 
-### 4.1. Módulo de OCR (Leitura de Certificados)
-* **Requisito:** "Uso opcional de OCR para leitura de certificados enviados como imagem" (pág. 2).
-* **O que falta:** Integração da biblioteca `tesseract.js` no `ActivityService`.
-* **Fundamentação:** O schema já possui o campo `ocrText`, mas a lógica de extração no upload não foi codificada.
+### Passo 1: Setup Inicial (Criar o Super Admin)
+* **Rota:** `POST /api/v1/users/register`
+* **Payload (JSON):**
+  ```json
+  {
+    "name": "Administrador Geral",
+    "email": "admin@senac.br",
+    "password": "senhaSegura123",
+    "role": "SUPER_ADMIN"
+  }
+  ```
 
-### 4.2. Sistema de Notificações por E-mail
-* **Requisito:** "Envio automático de notificações por e-mail" (pág. 2).
-* **O que falta:** Implementação de um serviço de mailer (ex: `Nodemailer`) disparado no `controller` de aprovação/rejeição de atividades.
+### Passo 2: Autenticação (Gerar o JWT)
+* **Rota:** `POST /api/v1/auth/login`
+* **Payload (JSON):**
+  ```json
+  {
+    "email": "admin@senac.br",
+    "password": "senhaSegura123"
+  }
+  ```
+* **Ação:** Copie a string devolvida no campo `token`.
 
-### 4.3. Lógica de Validação de Limites (Business Rules)
-* **Requisito:** "Controle por curso, definição de limites de horas por área" (pág. 2).
-* **O que falta:** Uma função no `ActivityService` que, antes de salvar uma atividade, consulte o `Course model` para verificar se a `hoursClaimed` não ultrapassa o `maxHours` da categoria específica.
-
-### 4.4. Segurança: Hash de Senha
-* **Requisito:** "O sistema deve contemplar autenticação" (pág. 2).
-* **O que falta:** Middleware de pre-save no `UserSchema` para realizar o hash da senha usando `bcryptjs`.
-* **Justificativa Técnica:** Armazenar senhas em texto plano viola o princípio de *Security by Design* (OWASP A07:2021).
+### Passo 3: Consumir Rotas Protegidas (Ex: Criar um Curso)
+* **Rota:** `POST /api/v1/courses`
+* **Headers:** Adicionar chave `Authorization` com valor `Bearer SEU_TOKEN_AQUI`.
+* **Payload (JSON):**
+  ```json
+  {
+    "name": "Análise e Desenvolvimento de Sistemas",
+    "totalHoursRequired": 120,
+    "categories": [
+      { "name": "Extensão", "maxHours": 40 },
+      { "name": "Pesquisa", "maxHours": 40 }
+    ]
+  }
+  ```
 
 ---
 
 ## 5. Definição de Variáveis de Ambiente (`.env`)
-O backend exige os seguintes parâmetros para operação:
-* `MONGO_URI`: String de conexão com o MongoDB.
-* `JWT_SECRET`: Chave privada para assinatura de tokens.
-* `PORT`: Porta de execução (padrão: 3000).
+
+O backend exige os seguintes parâmetros para operar:
+
+```env
+PORT=3000
+MONGO_URI=mongodb+srv://<usuario>:<senha>@cluster.mongodb.net/sigac
+JWT_SECRET=sua_chave_secreta_super_segura_aqui
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=seu_email@gmail.com
+SMTP_PASS=sua_senha_de_aplicativo
+```
 
 ---
 
-## 6. Justificativa Técnica de Design
+## 6. Resumo do Cumprimento de Requisitos do Documento (PI 3 2025.1)
 
-* **Separação de Preocupações:** O uso de `services/` garante que a lógica de cálculo de horas (complexa devido aos limites por categoria) não polua os `controllers`.
-* **Escalabilidade de Perfis:** O middleware `authorize` utiliza verificação baseada em array (`roles.includes`), permitindo que uma rota seja acessível por múltiplos perfis simultaneamente (ex: ADMIN e COORDINATOR).
-
+1. **"O sistema deve contemplar autenticação e controle de perfis":** Resolvido via `AuthController` (JWT), `bcryptjs` e middleware `authRole.js`.
+2. **"Uso opcional de OCR para leitura de certificados em imagem":** Resolvido via `FileProcessingService` com roteamento inteligente (`tesseract.js` para imagens e `pdf-parse` de alta performance para documentos nativos).
+3. **"Associação de coordenadores e alunos a múltiplos cursos":** Resolvido na modelagem do Mongoose (array de `courses`) e validação estrita no `ActivityController.evaluateActivity` (Multitenancy).
+4. **"Envio automático de notificações por e-mail":** Resolvido via `EmailService` integrado aos *Controllers* de submissão e avaliação.
+5. **"Registro de logs de ações relevantes":** Resolvido através do `AuditLog Model`, garantindo rastreabilidade legal das aprovações/rejeições de horas complementares.
