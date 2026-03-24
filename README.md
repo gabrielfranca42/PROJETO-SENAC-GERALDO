@@ -1,4 +1,4 @@
-Aqui está a documentação técnica atualizada e consolidada, agora incluindo os fluxos completos de Autenticação (Login) e Gestão de Identidade (Registro de Usuários), fundamentais para o funcionamento do sistema de permissões.
+
 
 ---
 
