@@ -1,16 +1,14 @@
-const mongoose = require('mongoose');
+require('dotenv').config(); 
+const app = require('./app');
+const connectDB = require('./config/db'); // 1. Importe o seu ficheiro de conexão
 
-const connectDB = async () => {
-  try {
-    const uri = process.env.MONGO_URI;
-    if (!uri) throw new Error("ERRO_ENV: MONGO_URI não definida.");
-    
-    await mongoose.connect(uri);
-    console.log("DB_STATUS: Conectado");
-  } catch (err) {
-    console.error(`DB_ERROR: ${err.message}`);
-    process.exit(1);
-  }
-};
+// Teste temporário ignorando o .env
+process.env.MONGO_URI = "mongodb://root:rootpassword@127.0.0.1:27017/pi_db?authSource=admin";
+connectDB();
+const PORT = process.env.PORT || 3000;
 
-module.exports = connectDB;
+app.listen(PORT, () => {
+  console.log(`Servidor a correr com sucesso na porta ${PORT}.`);
+  // Este log agora deve mostrar a string correta, não 'undefined'
+  console.log("URI Carregada:", process.env.MONGO_URI); 
+});
