@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['ADMIN', 'COORDINATOR', 'STUDENT'], default: 'STUDENT' },
+  role: { type: String, enum: ['ADMIN', 'COORDINATOR', 'STUDENT','SUPER_ADMIN'], default: 'STUDENT' },
   courses: [{ type: String }], // Array de IDs de cursos referenciados
   createdAt: { type: Date, default: Date.now }
 });
