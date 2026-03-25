@@ -2,12 +2,34 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['ADMIN', 'COORDINATOR', 'STUDENT','SUPER_ADMIN'], default: 'STUDENT' },
-  courses: [{ type: String }], // Array de IDs de cursos referenciados
-  createdAt: { type: Date, default: Date.now }
+  name: { 
+    type: String, 
+    required: [true, 'O nome é obrigatório'] 
+  },
+  email: { 
+    type: String, 
+    required: [true, 'O e-mail é obrigatório'], 
+    unique: true,
+    lowercase: true,
+    trim: true 
+  },
+  password: { 
+    type: String, 
+    required: [true, 'A senha é obrigatória'],
+    select: false 
+  },
+  role: { 
+    type: String, 
+    enum: ['ADMIN', 'COORDINATOR', 'STUDENT', 'SUPER_ADMIN'], 
+    default: 'STUDENT' 
+  },
+  courses: [{ 
+    type: String // Mantido conforme solicitado, mas recomenda-se mongoose.Schema.Types.ObjectId
+  }], 
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
 });
 
 // Middleware Mongoose para Hash de Senha
