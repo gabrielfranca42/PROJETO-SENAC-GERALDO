@@ -12,17 +12,19 @@ services:
     depends_on:
       - mongodb
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "5173:5173" # Porta padrão do Vite/React
-    environment:
-      - VITE_API_URL=http://localhost:3000
+#  frontend:
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    ports:
+#      - "5173:5173" # Porta padrão do Vite/React
+#    environment:
+#      - VITE_API_URL=http://localhost:3000
 
   mongodb:
     image: mongo:6.0
+    ports:
+      - "27017:27017"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=rootpassword
