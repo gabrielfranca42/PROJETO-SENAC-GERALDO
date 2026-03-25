@@ -1,16 +1,12 @@
-const mongoose = require('mongoose');
+require('dotenv').config(); 
+const app = require('./app');
 
-const connectDB = async () => {
-  try {
-    const uri = process.env.MONGO_URI;
-    if (!uri) throw new Error("ERRO_ENV: MONGO_URI não definida.");
-    
-    await mongoose.connect(uri);
-    console.log("DB_STATUS: Conectado");
-  } catch (err) {
-    console.error(`DB_ERROR: ${err.message}`);
-    process.exit(1);
-  }
-};
+// Se tiver o ficheiro connectDB.js, importe-o e execute-o aqui:
+// const connectDB = require('./config/connectDB');
+// connectDB();
 
-module.exports = connectDB;
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor a correr com sucesso na porta ${PORT}.`);
+});
