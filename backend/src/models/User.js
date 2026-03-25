@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
     default: 'STUDENT' 
   },
   courses: [{ 
-    type: String // Mantido conforme solicitado, mas recomenda-se mongoose.Schema.Types.ObjectId
+    type: String
   }], 
   createdAt: { 
     type: Date, 
@@ -32,16 +32,14 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-// Middleware Mongoose para Hash de Senha
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+// MIDDLEWARE CORRIGIDO: Sem o parâmetro 'next' e deixando o async/await brilhar
+UserSchema.pre('save', async function() {
+  // Se a senha não foi modificada, o 'return' encerra a função e libera o fluxo
+  if (!this.isModified('password')) return;
+
+  // Sem o 'next', o Mongoose aguarda as Promises resolverem sozinhas
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Método de instância para validação de login
