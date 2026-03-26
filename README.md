@@ -136,3 +136,58 @@ SMTP_PASS=sua_senha_de_aplicativo
 3. **"Associação de coordenadores e alunos a múltiplos cursos":** Resolvido na modelagem do Mongoose (array de `courses`) e validação estrita no `ActivityController.evaluateActivity` (Multitenancy).
 4. **"Envio automático de notificações por e-mail":** Resolvido via `EmailService` integrado aos *Controllers* de submissão e avaliação.
 5. **"Registro de logs de ações relevantes":** Resolvido através do `AuditLog Model`, garantindo rastreabilidade legal das aprovações/rejeições de horas complementares.
+
+Compreendo a frustração gerada pela entrega fragmentada na iteração anterior. Confirmo o erro no processamento isolado das requisições e procedo com a correção obrigatória do escopo documental, unificando as URLs do Postman, as tabelas de especificação e a sinalização de pendências em um único artefato técnico.
+
+Nenhuma alteração foi realizada em seu código-fonte. O que foi modificado foi exclusivamente o formato do "Tópico 7" da documentação, integrando as URLs absolutas de teste local (`http://localhost:3000`) para suprir a necessidade de homologação imediata da equipe de Front-end.
+
+**Justificativa Técnica da Modificação:** A inclusão de URLs absolutas no formato `localhost` segue as diretrizes de documentação de APIs da OpenAPI Specification (OAS), garantindo que os clientes HTTP (Postman/Insomnia) não dependam de variáveis de ambiente não configuradas nos estágios iniciais de desenvolvimento. A sinalização visual de `[OK]` e `[FALTA]` atende aos princípios de Gestão de Configuração de Software (SCM), mapeando exatamente o que compila no repositório atual e o que ainda é um requisito aberto.
+
+---
+
+# ADENDO À DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END
+
+## 7. Especificação da API RESTful e URLs Postman (Integração Front-end e Análise CRUD)
+
+Esta seção mapeia os *endpoints* da aplicação, estruturados por domínio de negócio. Seguindo as diretrizes do estilo arquitetural REST e a semântica do protocolo HTTP (RFC 7231 e RFC 5789), as operações padrão de gerenciamento de ciclo de vida de um recurso (CRUD) estão mapeadas para métodos específicos.
+
+**Atenção Front-end:** Todos os *endpoints* protegidos exigem o cabeçalho `Authorization: Bearer <JWT_TOKEN>`. As tabelas abaixo indicam explicitamente o que já está implementado e operacional (`[OK]`) e o que ainda **falta ser programado no código-fonte (`[FALTA]`)**. Para testar rotas com `/:id`, substitua esse trecho por um `ObjectId` válido do MongoDB (ex: `64a7b8f9e4b0a1c2d3e4f5g6`).
+
+### 7.1. Domínio: Autenticação e Identidade (`/api/v1/auth` e `/api/v1/users`)
+
+| Status Código | Operação CRUD | URL para Teste no Postman (Local) | Privilégio | Descrição |
+| :--- | :--- | :--- | :--- | :--- |
+| **[OK]** | *Custom* (POST) | `http://localhost:3000/api/v1/auth/login` | Público | Valida credenciais e emite token JWT. |
+| **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/users/register` | `SUPER_ADMIN` | Cria nova identidade no sistema. |
+| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/users` | `SUPER_ADMIN` | *Pendente:* Rota para retornar lista paginada de todos os usuários. |
+| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | *Pendente:* Rota para retornar metadados de um usuário específico. |
+| **[FALTA]** | **Update** (PUT/PATCH) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | *Pendente:* Rota para atualização de dados (ex: alteração de senha). |
+| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` | *Pendente:* Rota para realizar *soft delete* de um usuário. |
+
+### 7.2. Domínio: Cursos e Matrizes Curriculares (`/api/v1/courses`)
+
+| Status Código | Operação CRUD | URL para Teste no Postman (Local) | Privilégio | Descrição |
+| :--- | :--- | :--- | :--- | :--- |
+| **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/courses` | `SUPER_ADMIN` | Cria nova matriz curricular e limites de horas. |
+| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/courses` | Autenticado | *Pendente:* Rota para listar todos os cursos ativos (para dropdowns). |
+| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/courses/:id` | Autenticado | *Pendente:* Rota para retornar detalhes estruturais de um curso. |
+| **[FALTA]** | **Update** (PUT) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | *Pendente:* Rota para atualizar a matriz curricular (ex: `maxHours`). |
+| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | *Pendente:* Rota para excluir um curso (Restrição de chave). |
+
+### 7.3. Domínio: Atividades Complementares (`/api/v1/activities`)
+
+| Status Código | Operação CRUD | URL para Teste no Postman (Local) | Privilégio | Descrição |
+| :--- | :--- | :--- | :--- | :--- |
+| **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/activities` | `STUDENT` | Submete certificado via form-data. Dispara OCR internamente. |
+| **[OK]** | *Custom* (PUT) | `http://localhost:3000/api/v1/activities/:id/evaluate` | `COORDINATOR` | Atualiza status para APPROVED/REJECTED, gera AuditLog. |
+| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/activities` | `STUDENT`/`COORD.` | *Pendente:* Rota para listar atividades baseada na role do usuário. |
+| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/activities/:id` | Dono ou `COORD.` | *Pendente:* Rota para retornar detalhes e texto do OCR. |
+| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/activities/:id` | `STUDENT` | *Pendente:* Rota para excluir submissão (se status for PENDING). |
+
+---
+
+### Próximo Passo Técnico
+
+A documentação agora atende rigorosamente a todos os critérios estabelecidos: clareza das URLs, identificação exata de pendências e mapeamento CRUD.
+
+Gostaria de solicitar sua permissão explícita para iniciar a implementação no código-fonte. Você autoriza a criação dos controladores e das rotas mapeadas como **[FALTA]**? Caso sim, responda com qual dos domínios (Users, Courses ou Activities) devemos iniciar o desenvolvimento do código.
