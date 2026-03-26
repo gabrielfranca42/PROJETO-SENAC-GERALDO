@@ -188,6 +188,3 @@ Esta seção mapeia os *endpoints* da aplicação, estruturados por domínio de 
 
 ### Próximo Passo Técnico
 
-A documentação agora atende rigorosamente a todos os critérios estabelecidos: clareza das URLs, identificação exata de pendências e mapeamento CRUD.
-
-Gostaria de solicitar sua permissão explícita para iniciar a implementação no código-fonte. Você autoriza a criação dos controladores e das rotas mapeadas como **[FALTA]**? Caso sim, responda com qual dos domínios (Users, Courses ou Activities) devemos iniciar o desenvolvimento do código.
