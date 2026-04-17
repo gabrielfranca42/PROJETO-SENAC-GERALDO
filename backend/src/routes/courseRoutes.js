@@ -17,7 +17,7 @@ router.post(
 /**
  * GET /api/v1/courses
  * Listagem de todos os cursos.
- * Decisão Técnica: Geralmente, a listagem é permitida para múltiplos perfis (ex: alunos e administradores).
+ * Geralmente, a listagem é permitida para múltiplos perfis (ex: alunos e administradores).
  * Você deve ajustar a array de roles conforme a sua regra de negócio.
  */
 router.get(
@@ -29,7 +29,7 @@ router.get(
 /**
  * GET /api/v1/courses/:id
  * Busca de um curso específico pelo ID.
- * Decisão Técnica: O uso do parâmetro de rota ':id' é o padrão do Express para identificação de recursos específicos.
+ * O uso do parâmetro de rota ':id' é o padrão do Express para identificação de recursos específicos.
  */
 router.get(
   '/:id',
@@ -40,7 +40,7 @@ router.get(
 /**
  * PUT /api/v1/courses/:id
  * Atualização completa de um curso.
- * Decisão Técnica: PUT implica em substituir o recurso inteiro. Acesso restrito a administradores.
+ * PUT implica em substituir o recurso inteiro. Acesso restrito a administradores.
  */
 router.put(
   '/:id',
@@ -51,7 +51,7 @@ router.put(
 /**
  * PATCH /api/v1/courses/:id
  * Atualização parcial de um curso.
- * Decisão Técnica: PATCH é usado para modificar apenas alguns campos (ex: mudar o status do curso). 
+ * PATCH é usado para modificar apenas alguns campos (ex: mudar o status do curso). 
  */
 router.patch(
   '/:id',
@@ -62,7 +62,7 @@ router.patch(
 /**
  * DELETE /api/v1/courses/:id
  * Remoção de um curso.
- * Decisão Técnica: Operações destrutivas devem ter a blindagem máxima. Mantive apenas 'SUPER_ADMIN' 
+ * Operações destrutivas devem ter a blindagem máxima. Mantive apenas 'SUPER_ADMIN' 
  * como no método POST para garantir a segurança da exclusão.
  */
 router.delete(
