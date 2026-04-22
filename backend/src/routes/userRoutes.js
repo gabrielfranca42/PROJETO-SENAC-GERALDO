@@ -9,7 +9,8 @@ const authorize = require('../middlewares/authRole');    // Importa o validador 
 /**
  * POST /api/v1/users/register
  * Rota de registro (Criação de Usuário).
- * Mantida pública conforme o código ativo enviado por você.
+  * Esta rota é pública e não exige autenticação, pois é o ponto de entrada para novos usuários.
+  * A validação de dados é realizada no controller, e a senha é automaticamente hashada pelo middleware 'pre-save' do Mongoose.
  */
 router.post('/register', UserController.register);
 

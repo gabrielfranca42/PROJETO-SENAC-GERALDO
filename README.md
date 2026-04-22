@@ -1,8 +1,5 @@
 
-
----
-
-# DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END (VERSÃO FINAL - FASE 1)
+# DOCUMENTAÇÃO TÉCNICA: SIGAC BACK-END ( FASE 1)
 
 ## 1. Status de Implementação (O que já foi feito)
 
@@ -159,32 +156,34 @@ Esta seção mapeia os *endpoints* da aplicação, estruturados por domínio de 
 | :--- | :--- | :--- | :--- | :--- |
 | **[OK]** | *Custom* (POST) | `http://localhost:3000/api/v1/auth/login` | Público | Valida credenciais e emite token JWT. |
 | **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/users/register` | `SUPER_ADMIN` | Cria nova identidade no sistema. |
-| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/users` | `SUPER_ADMIN` | *Pendente:* Rota para retornar lista paginada de todos os usuários. |
-| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | *Pendente:* Rota para retornar metadados de um usuário específico. |
-| **[FALTA]** | **Update** (PUT/PATCH) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | *Pendente:* Rota para atualização de dados (ex: alteração de senha). |
-| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` | *Pendente:* Rota para realizar *soft delete* de um usuário. |
+| **[OK]** | **Read Self** (GET)| `http://localhost:3000/api/v1/users/me` | Autenticado | Retorna os dados do próprio usuário logado extraídos via JWT. |
+| **[OK]** | **Read All** (GET) | `http://localhost:3000/api/v1/users` | `SUPER_ADMIN`, `ADMIN` | Rota para retornar lista paginada de todos os usuários. |
+| **[OK]** | **Read One** (GET) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | Rota para retornar metadados de um usuário específico. |
+| **[OK]** | **Update** (PUT/PATCH) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` / Dono | Rota para atualização de dados (ex: alteração de senha). |
+| **[OK]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/users/:id` | `SUPER_ADMIN` | Rota para realizar *soft delete* ou exclusão de um usuário. |
 
 ### 7.2. Domínio: Cursos e Matrizes Curriculares (`/api/v1/courses`)
 
 | Status Código | Operação CRUD | URL para Teste no Postman (Local) | Privilégio | Descrição |
 | :--- | :--- | :--- | :--- | :--- |
 | **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/courses` | `SUPER_ADMIN` | Cria nova matriz curricular e limites de horas. |
-| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/courses` | Autenticado | *Pendente:* Rota para listar todos os cursos ativos (para dropdowns). |
-| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/courses/:id` | Autenticado | *Pendente:* Rota para retornar detalhes estruturais de um curso. |
-| **[FALTA]** | **Update** (PUT) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | *Pendente:* Rota para atualizar a matriz curricular (ex: `maxHours`). |
-| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | *Pendente:* Rota para excluir um curso (Restrição de chave). |
+| **[OK]** | **Read All** (GET) | `http://localhost:3000/api/v1/courses` | Autenticado | Rota para listar todos os cursos ativos (para dropdowns). |
+| **[OK]** | **Read One** (GET) | `http://localhost:3000/api/v1/courses/:id` | Autenticado | Rota para retornar detalhes estruturais de um curso. |
+| **[OK]** | **Update** (PUT) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | Rota para atualizar a matriz curricular (ex: `maxHours`). |
+| **[OK]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/courses/:id` | `SUPER_ADMIN` | Rota para excluir um curso (Restrição de chave). |
 
 ### 7.3. Domínio: Atividades Complementares (`/api/v1/activities`)
 
 | Status Código | Operação CRUD | URL para Teste no Postman (Local) | Privilégio | Descrição |
 | :--- | :--- | :--- | :--- | :--- |
 | **[OK]** | **Create** (POST) | `http://localhost:3000/api/v1/activities` | `STUDENT` | Submete certificado via form-data. Dispara OCR internamente. |
+| **[OK]** | **Read All** (GET) | `http://localhost:3000/api/v1/activities` | `STUDENT`/`COORD.` | Rota para listar atividades baseada na role do usuário. |
+| **[OK]** | **Read One** (GET) | `http://localhost:3000/api/v1/activities/:id` | Dono ou `COORD.` | Rota para retornar detalhes e texto do OCR. |
+| **[OK]** | **Update** (PUT) | `http://localhost:3000/api/v1/activities/:id` | `STUDENT` | Rota para editar ou reenviar arquivo da submissão (status PENDING). |
 | **[OK]** | *Custom* (PUT) | `http://localhost:3000/api/v1/activities/:id/evaluate` | `COORDINATOR` | Atualiza status para APPROVED/REJECTED, gera AuditLog. |
-| **[FALTA]** | **Read All** (GET) | `http://localhost:3000/api/v1/activities` | `STUDENT`/`COORD.` | *Pendente:* Rota para listar atividades baseada na role do usuário. |
-| **[FALTA]** | **Read One** (GET) | `http://localhost:3000/api/v1/activities/:id` | Dono ou `COORD.` | *Pendente:* Rota para retornar detalhes e texto do OCR. |
-| **[FALTA]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/activities/:id` | `STUDENT` | *Pendente:* Rota para excluir submissão (se status for PENDING). |
+| **[OK]** | **Delete** (DELETE) | `http://localhost:3000/api/v1/activities/:id` | `STUDENT` | Rota para excluir submissão (se status for PENDING). |
 
 ---
 
-### Próximo Passo Técnico
 
+```
