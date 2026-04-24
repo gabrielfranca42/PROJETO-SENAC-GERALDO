@@ -1,5 +1,11 @@
 const express = require('express');
 const cors = require('cors');
+const authenticate = require('../middlewares/auth');
+
+// E possivelmente a declaração que adicionei e você colou embaixo:
+const { authenticate } = require('../middlewares/auth'); 
+// OU 
+const authenticate = require('../middlewares/auth');
 
 // 1. Removemos o // desta linha
 const userRoutes = require('./routes/userRoutes');

@@ -1,5 +1,14 @@
+
+// userRoutes.js (Apenas a seção de importações)
 const express = require('express');
 const router = express.Router();
+
+// Importação da instância da classe (NÃO usar destructuring aqui)
+const UserController = require('../controllers/UserController');
+
+// Importação direta da função exportada via module.exports = function_name
+const authenticate = require('../middlewares/auth'); // Assumindo o mesmo padrão
+const authorize = require('../middlewares/authRole');
 
 // =========================================================================
 // ALTERAÇÃO 1: Desestruturação do Controlador (Hipótese de Exportação)
