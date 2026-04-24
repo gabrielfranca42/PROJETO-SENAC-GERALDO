@@ -52,8 +52,8 @@ class UserController {
   }
 
   // =========================================================================
-  // ALTERAÇÃO: Implementação de Stubs (Esboços) para os métodos faltantes
-  // JUSTIFICATIVA TÉCNICA: O Express.Router exige que os handlers sejam do 
+  // Implementação de Stubs (Esboços) para os métodos faltante
+  //  O Express.Router exige que os handlers sejam do 
   // tipo 'Function'. A ausência desses métodos na classe resultava em 'undefined'.
   // O status HTTP 501 (Not Implemented) sinaliza pela RFC 7231 que o servidor 
   // não suporta a funcionalidade requerida no momento.
