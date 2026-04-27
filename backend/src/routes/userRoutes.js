@@ -3,7 +3,7 @@ const router = express.Router();
 
 // =========================================================================
 // ALTERAÇÃO: Consolidação de Importações e Remoção de Duplicatas
-// JUSTIFICATIVA TÉCNICA: Remoção das múltiplas declarações 'const authenticate'
+// Remoção das múltiplas declarações 'const authenticate'
 // e 'const authorize' para adequação à RFC ECMA-262 (Block Scoping). 
 // Centralização das importações no topo do arquivo garante a correta
 // resolução do grafo de dependências do módulo CommonJS.
