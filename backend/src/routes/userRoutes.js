@@ -1,22 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-// =========================================================================
-<<<<<<< HEAD
-//  Remoção das múltiplas declarações 'const authenticate'
-=======
-// ALTERAÇÃO: Consolidação de Importações e Remoção de Duplicatas
-// Remoção das múltiplas declarações 'const authenticate'
->>>>>>> 60fb3d6323a5505d85f176776d3ff203ef247374
-// e 'const authorize' para adequação à RFC ECMA-262 (Block Scoping). 
-// Centralização das importações no topo do arquivo garante a correta
-// resolução do grafo de dependências do módulo CommonJS.
-// =========================================================================
-
-// 1. Importação da instância Singleton do Controlador
+// Importações de Controllers e Middlewares
 const UserController = require('../controllers/UserController');
-
-// 2. Importações diretas dos Middlewares (Únicas declarações)
 const authenticate = require('../middlewares/auth');
 const authorize = require('../middlewares/authRole');
 
@@ -42,7 +28,7 @@ router.get(
 
 /**
  * GET /api/v1/users
- * Restrito a administradores.
+ * Restrito a administradores. Aceita query param ?role= para filtrar.
  */
 router.get(
   '/',

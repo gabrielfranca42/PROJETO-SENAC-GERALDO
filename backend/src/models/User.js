@@ -23,6 +23,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['ADMIN', 'COORDINATOR', 'STUDENT', 'SUPER_ADMIN'], 
     default: 'STUDENT' 
   },
+  matricula: {
+    type: String,
+    default: null,
+    sparse: true
+  },
   courses: [{ 
     type: String
   }], 
@@ -32,12 +37,9 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-// MIDDLEWARE CORRIGIDO: Sem o parâmetro 'next' e deixando o async/await brilhar
+// Hash de senha antes de salvar
 UserSchema.pre('save', async function() {
-  // Se a senha não foi modificada, o 'return' encerra a função e libera o fluxo
   if (!this.isModified('password')) return;
-
-  // Sem o 'next', o Mongoose aguarda as Promises resolverem sozinhas
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });

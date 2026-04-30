@@ -2,13 +2,13 @@ const ActivityService = require('../services/activityService');
 const EmailService = require('../services/EmailService');
 const FileProcessingService = require('../services/FileProcessingService');
 const User = require('../models/User');
-const Activity = require('../models/Activity'); // Necessário para a busca na avaliação
-const AuditLog = require('../models/AuditLog'); // O model que criamos para rastreabilidade
+const Activity = require('../models/Activity');
+const AuditLog = require('../models/AuditLog');
 
 class ActivityController {
   
   // ------------------------------------------------------------------------
-  // FLUXO DO ALUNO: Submissão de Atividades
+  // SUBMISSÃO (POST /api/v1/activities)
   // ------------------------------------------------------------------------
   async submitActivity(req, res) {
     try {
@@ -46,37 +46,160 @@ class ActivityController {
   }
 
   // ------------------------------------------------------------------------
-  // FLUXO DO COORDENADOR: Avaliação e Auditoria
+  // LISTAR TODAS (GET /api/v1/activities)
+  // Aceita query params: ?status=PENDING&courseId=xxx
+  // ------------------------------------------------------------------------
+  async getAllActivities(req, res) {
+    try {
+      const user = req.user;
+      const query = {};
+
+      // Filtro por status (ex: ?status=PENDING)
+      if (req.query.status) {
+        query.status = req.query.status.toUpperCase();
+      }
+
+      // Filtro por curso
+      if (req.query.courseId) {
+        query.course = req.query.courseId;
+      }
+
+      // Estudante só vê suas próprias atividades
+      if (user.role === 'STUDENT') {
+        query.student = user.id;
+      }
+
+      // Coordenador vê atividades dos cursos que gerencia
+      if (user.role === 'COORDINATOR' && user.courses) {
+        query.course = { $in: user.courses };
+      }
+
+      const activities = await Activity.find(query)
+        .populate('student', 'name email matricula')
+        .populate('course', 'name')
+        .sort({ createdAt: -1 });
+
+      return res.status(200).json(activities);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // BUSCAR POR ID (GET /api/v1/activities/:id)
+  // ------------------------------------------------------------------------
+  async getActivityById(req, res) {
+    try {
+      const activity = await Activity.findById(req.params.id)
+        .populate('student', 'name email matricula')
+        .populate('course', 'name');
+
+      if (!activity) {
+        return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
+      }
+
+      return res.status(200).json(activity);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // ATUALIZAR (PUT /api/v1/activities/:id)
+  // Aluno pode atualizar apenas se status for PENDING
+  // ------------------------------------------------------------------------
+  async updateActivity(req, res) {
+    try {
+      const activity = await Activity.findById(req.params.id);
+
+      if (!activity) {
+        return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
+      }
+
+      if (activity.status !== 'PENDING') {
+        return res.status(400).json({ 
+          error: "BAD_REQUEST: Apenas atividades pendentes podem ser editadas." 
+        });
+      }
+
+      // Só o dono pode editar
+      if (activity.student.toString() !== req.user.id) {
+        return res.status(403).json({ error: "FORBIDDEN: Acesso negado." });
+      }
+
+      const { title, hoursClaimed, category } = req.body;
+      if (title) activity.title = title;
+      if (hoursClaimed) activity.hoursClaimed = Number(hoursClaimed);
+      if (category) activity.category = category;
+
+      if (req.file) {
+        const extractedText = await FileProcessingService.extractText(
+          req.file.buffer, req.file.mimetype
+        );
+        activity.ocrText = extractedText;
+      }
+
+      await activity.save();
+      return res.status(200).json(activity);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // DELETAR (DELETE /api/v1/activities/:id)
+  // Aluno pode deletar apenas se status for PENDING
+  // ------------------------------------------------------------------------
+  async deleteActivity(req, res) {
+    try {
+      const activity = await Activity.findById(req.params.id);
+
+      if (!activity) {
+        return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
+      }
+
+      if (activity.status !== 'PENDING') {
+        return res.status(400).json({ 
+          error: "BAD_REQUEST: Não é possível excluir atividades já avaliadas." 
+        });
+      }
+
+      if (activity.student.toString() !== req.user.id) {
+        return res.status(403).json({ error: "FORBIDDEN: Acesso negado." });
+      }
+
+      await Activity.findByIdAndDelete(req.params.id);
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // AVALIAR (PUT /api/v1/activities/:id/evaluate)
+  // Coordenador aprova ou rejeita
   // ------------------------------------------------------------------------
   async evaluateActivity(req, res) {
     try {
-      const { id } = req.params; // ID da atividade sendo avaliada
-      const { status, rejectionReason } = req.body; // 'APPROVED' ou 'REJECTED'
+      const { id } = req.params;
+      const { status, rejectionReason } = req.body;
       const coordinator = req.user;
 
-      // 1. Busca da Atividade com os dados do aluno populados para envio de e-mail
       const activity = await Activity.findById(id).populate('student', 'name email');
       if (!activity) {
         return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
       }
 
-      // 2. Validação de Multitenancy (Segurança Requisitada no PDF)
-      // O SUPER_ADMIN tem bypass, mas o COORDINATOR precisa ser validado se pertence ao curso
-      if (coordinator.role !== 'SUPER_ADMIN' && !coordinator.courses.includes(activity.course.toString())) {
-        return res.status(403).json({ 
-          error: "FORBIDDEN: Você não gerencia o curso atrelado a esta atividade." 
-        });
-      }
-
-      // 3. Atualização do Status
       if (!['APPROVED', 'REJECTED'].includes(status)) {
-         return res.status(400).json({ error: "BAD_REQUEST: Status inválido." });
+         return res.status(400).json({ error: "BAD_REQUEST: Status inválido. Use APPROVED ou REJECTED." });
       }
       
       activity.status = status;
+      if (rejectionReason) {
+        activity.feedback = rejectionReason;
+      }
       await activity.save();
 
-      // 4. Registro no Log de Auditoria (Rastreabilidade Exigida)
       await AuditLog.create({
         action: status === 'APPROVED' ? 'ACTIVITY_APPROVED' : 'ACTIVITY_REJECTED',
         performedBy: coordinator.id,
@@ -88,7 +211,7 @@ class ActivityController {
         }
       });
 
-      // 5. Notificação Assíncrona ao Aluno via EmailService
+      // Notificação por e-mail (assíncrona, sem bloquear resposta)
       EmailService.sendStatusUpdate(activity.student.email, activity.title, status).catch(console.error);
 
       return res.status(200).json({ 
@@ -102,4 +225,4 @@ class ActivityController {
   }
 }
 
-module.exports = new ActivityController(); // Corrigido para uma única exportação
+module.exports = new ActivityController();

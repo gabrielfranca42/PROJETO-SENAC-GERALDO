@@ -1,34 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 
-// =========================================================================
-<<<<<<< HEAD
- 
-//  As linhas que continham a importação de 'authenticate' 
-=======
-// ALTERAÇÃO: Remoção de Código Incorreto
->>>>>>> 60fb3d6323a5505d85f176776d3ff203ef247374
-// (e possivelmente sua duplicação) foram removidas. Middlewares de rota 
-// específica não devem ser instanciados na raiz da aplicação, pois isso 
-// viola o princípio de Separação de Preocupações (SoC) e estava gerando 
-// colisão de nomenclatura sintática no motor V8.
-// =========================================================================
-
+// Importação de Rotas
+const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
-// const authRoutes = require('./routes/authRoutes');
-// const courseRoutes = require('./routes/courseRoutes');
+const courseRoutes = require('./routes/courseRoutes');
+const activityRoutes = require('./routes/activityRoutes');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json()); 
+// Middlewares Globais
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true
+}));
+app.use(express.json());
 
+// Health Check
 app.get('/', (req, res) => {
   res.status(200).json({ message: "API do SIGAC esta online e a funcionar." });
 });
 
+// Registro de Rotas
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/auth', authRoutes);
-// app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/courses', courseRoutes);
+app.use('/api/v1/activities', activityRoutes);
 
 module.exports = app;

@@ -6,7 +6,7 @@ const ActivityController = require('../controllers/ActivityController');
 // IMPORTAÇÕES DE MIDDLEWARES
 // Decisão Técnica: Adicionado 'authenticate' para garantir a extração do req.user antes do 'authorize'
 const authenticate = require('../middlewares/auth'); 
-const authorize = require('../middlewares/authorize'); // Mantive o nome do seu snippet
+const authorize = require('../middlewares/authRole');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
