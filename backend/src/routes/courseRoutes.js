@@ -1,49 +1,49 @@
 const express = require('express');
 const router = express.Router();
 const CourseController = require('../controllers/CourseController');
+const authenticate = require('../middlewares/auth');
 const authorize = require('../middlewares/authRole');
 
 /**
  * POST /api/v1/courses
- * Criação de curso.
- * Blindagem explícita: Apenas tokens com role 'SUPER_ADMIN' passam desta linha.
+ * Criação de curso. Apenas SUPER_ADMIN ou ADMIN.
  */
 router.post(
   '/', 
-  authorize(['SUPER_ADMIN']), 
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN']), 
   CourseController.createCourse
 );
 
 /**
  * GET /api/v1/courses
  * Listagem de todos os cursos.
- * Geralmente, a listagem é permitida para múltiplos perfis (ex: alunos e administradores).
- * Você deve ajustar a array de roles conforme a sua regra de negócio.
  */
 router.get(
   '/',
-  authorize(['SUPER_ADMIN', 'ADMIN', 'STUDENT']),
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR', 'STUDENT']),
   CourseController.getAllCourses
 );
 
 /**
  * GET /api/v1/courses/:id
  * Busca de um curso específico pelo ID.
- * O uso do parâmetro de rota ':id' é o padrão do Express para identificação de recursos específicos.
  */
 router.get(
   '/:id',
-  authorize(['SUPER_ADMIN', 'ADMIN', 'STUDENT']),
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR', 'STUDENT']),
   CourseController.getCourseById
 );
 
 /**
  * PUT /api/v1/courses/:id
  * Atualização completa de um curso.
- * PUT implica em substituir o recurso inteiro. Acesso restrito a administradores.
  */
 router.put(
   '/:id',
+  authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
   CourseController.updateCourse
 );
@@ -51,10 +51,10 @@ router.put(
 /**
  * PATCH /api/v1/courses/:id
  * Atualização parcial de um curso.
- * PATCH é usado para modificar apenas alguns campos (ex: mudar o status do curso). 
  */
 router.patch(
   '/:id',
+  authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
   CourseController.patchCourse
 );
@@ -62,13 +62,38 @@ router.patch(
 /**
  * DELETE /api/v1/courses/:id
  * Remoção de um curso.
- * Operações destrutivas devem ter a blindagem máxima. Mantive apenas 'SUPER_ADMIN' 
- * como no método POST para garantir a segurança da exclusão.
  */
 router.delete(
   '/:id',
+  authenticate,
   authorize(['SUPER_ADMIN']),
   CourseController.deleteCourse
+);
+
+// =========================================================================
+// ROTAS DE CATEGORIAS (Regras) DENTRO DE UM CURSO
+// =========================================================================
+
+/**
+ * POST /api/v1/courses/:id/categories
+ * Adicionar uma nova categoria/regra a um curso.
+ */
+router.post(
+  '/:id/categories',
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN']),
+  CourseController.addCategory
+);
+
+/**
+ * DELETE /api/v1/courses/:id/categories/:categoryId
+ * Remover uma categoria/regra de um curso.
+ */
+router.delete(
+  '/:id/categories/:categoryId',
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN']),
+  CourseController.removeCategory
 );
 
 module.exports = router;
