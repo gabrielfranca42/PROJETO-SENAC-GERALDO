@@ -2,25 +2,23 @@ const mongoose = require('mongoose');
 
 const CategoryRuleSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  maxHours: { type: Number, required: true }, // Limite total do curso para a categoria
-  semesterMaxHours: { type: Number, required: true } // Limite semestral da categoria
+  maxHours: { type: Number, required: true },
+  semesterMaxHours: { type: Number, default: 0 }
 });
 
 const CourseSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   totalHoursRequired: { type: Number, required: true },
-  semesterMaxHours: { type: Number, required: true }, // Limite semestral global do curso
+  semesterMaxHours: { type: Number, default: 0 },
   categories: [CategoryRuleSchema],
-  
-  // =========================================================================
-  // Ao exigir um 'ObjectId' referenciando o model 'User',
-  // garantimos a regra "1 Curso tem 1 Coordenador". Para descobrir os "vários
-  // cursos de um coordenador", basta fazer uma query: Course.find({ coordinator: id })
-  // =========================================================================
   coordinator: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Referência exata ao modelo de Usuários
-    required: [true, 'Um curso deve obrigatoriamente ter um coordenador vinculado.']
+    ref: 'User',
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 });
 

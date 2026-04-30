@@ -1,9 +1,13 @@
 const User = require('../models/User');
 
 class UserController {
-  register = async (req, res, next) => {
+  /**
+   * POST /api/v1/users/register
+   * Cadastra um novo usuário (coordenador, aluno, admin).
+   */
+  register = async (req, res) => {
     try {
-      const { name, email, password, role, courses } = req.body;
+      const { name, email, password, role, courses, matricula } = req.body;
 
       if (!name || !email || !password) {
         return res.status(400).json({ 
@@ -23,7 +27,8 @@ class UserController {
         email,
         password,
         role: role || 'STUDENT',
-        courses: courses || []
+        courses: courses || [],
+        matricula: matricula || null
       });
 
       await user.save();
@@ -35,7 +40,8 @@ class UserController {
           name: user.name,
           email: user.email,
           role: user.role,
-          courses: user.courses
+          courses: user.courses,
+          matricula: user.matricula
         }
       });
 
@@ -51,36 +57,101 @@ class UserController {
     }
   }
 
-  // =========================================================================
-  // ALTERAÇÃO: Implementação de Stubs (Esboços) para os métodos faltantes
-  // JUSTIFICATIVA TÉCNICA: O Express.Router exige que os handlers sejam do 
-  // tipo 'Function'. A ausência desses métodos na classe resultava em 'undefined'.
-  // O status HTTP 501 (Not Implemented) sinaliza pela RFC 7231 que o servidor 
-  // não suporta a funcionalidade requerida no momento.
-  // =========================================================================
-
-  getProfile = async (req, res, next) => {
-    return res.status(501).json({ error: "NOT_IMPLEMENTED: Método getProfile em desenvolvimento." });
+  /**
+   * GET /api/v1/users/me
+   * Retorna os dados do usuário autenticado.
+   */
+  getProfile = async (req, res) => {
+    try {
+      const user = await User.findById(req.user.id).select('-password');
+      if (!user) {
+        return res.status(404).json({ error: "NOT_FOUND: Usuário não encontrado." });
+      }
+      return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   }
 
-  getAllUsers = async (req, res, next) => {
-    return res.status(501).json({ error: "NOT_IMPLEMENTED: Método getAllUsers em desenvolvimento." });
+  /**
+   * GET /api/v1/users
+   * Lista todos os usuários. Aceita query param ?role= para filtrar.
+   * Ex: GET /api/v1/users?role=COORDINATOR
+   */
+  getAllUsers = async (req, res) => {
+    try {
+      const query = {};
+      
+      // Filtro por role via query string
+      if (req.query.role) {
+        query.role = req.query.role.toUpperCase();
+      }
+
+      const users = await User.find(query).select('-password -__v');
+      return res.status(200).json(users);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   }
 
-  getUserById = async (req, res, next) => {
-    return res.status(501).json({ error: "NOT_IMPLEMENTED: Método getUserById em desenvolvimento." });
+  /**
+   * GET /api/v1/users/:id
+   * Busca um usuário por ID.
+   */
+  getUserById = async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id).select('-password -__v');
+      if (!user) {
+        return res.status(404).json({ error: "NOT_FOUND: Usuário não encontrado." });
+      }
+      return res.status(200).json(user);
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   }
 
-  updateUser = async (req, res, next) => {
-    return res.status(501).json({ error: "NOT_IMPLEMENTED: Método updateUser em desenvolvimento." });
+  /**
+   * PUT /api/v1/users/:id
+   * Atualiza dados de um usuário.
+   */
+  updateUser = async (req, res) => {
+    try {
+      const updates = req.body;
+      
+      // Não permitir atualização de senha por esta rota
+      delete updates.password;
+
+      const user = await User.findByIdAndUpdate(
+        req.params.id, 
+        updates, 
+        { new: true, runValidators: true }
+      ).select('-password -__v');
+
+      if (!user) {
+        return res.status(404).json({ error: "NOT_FOUND: Usuário não encontrado." });
+      }
+
+      return res.status(200).json(user);
+    } catch (error) {
+      return res.status(400).json({ error: error.message });
+    }
   }
 
-  deleteUser = async (req, res, next) => {
-    return res.status(501).json({ error: "NOT_IMPLEMENTED: Método deleteUser em desenvolvimento." });
+  /**
+   * DELETE /api/v1/users/:id
+   * Remove um usuário.
+   */
+  deleteUser = async (req, res) => {
+    try {
+      const user = await User.findByIdAndDelete(req.params.id);
+      if (!user) {
+        return res.status(404).json({ error: "NOT_FOUND: Usuário não encontrado." });
+      }
+      return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
   }
-  // =========================================================================
-  // FIM DA ALTERAÇÃO
-  // =========================================================================
 }
 
 module.exports = new UserController();
