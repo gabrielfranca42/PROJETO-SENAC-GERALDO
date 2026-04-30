@@ -2,8 +2,12 @@ const express = require('express');
 const cors = require('cors');
 
 // =========================================================================
+<<<<<<< HEAD
  
 //  As linhas que continham a importação de 'authenticate' 
+=======
+// ALTERAÇÃO: Remoção de Código Incorreto
+>>>>>>> 60fb3d6323a5505d85f176776d3ff203ef247374
 // (e possivelmente sua duplicação) foram removidas. Middlewares de rota 
 // específica não devem ser instanciados na raiz da aplicação, pois isso 
 // viola o princípio de Separação de Preocupações (SoC) e estava gerando 

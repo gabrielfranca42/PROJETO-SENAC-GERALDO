@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 // =========================================================================
+<<<<<<< HEAD
 //  Remoção das múltiplas declarações 'const authenticate'
+=======
+// ALTERAÇÃO: Consolidação de Importações e Remoção de Duplicatas
+// Remoção das múltiplas declarações 'const authenticate'
+>>>>>>> 60fb3d6323a5505d85f176776d3ff203ef247374
 // e 'const authorize' para adequação à RFC ECMA-262 (Block Scoping). 
 // Centralização das importações no topo do arquivo garante a correta
 // resolução do grafo de dependências do módulo CommonJS.
