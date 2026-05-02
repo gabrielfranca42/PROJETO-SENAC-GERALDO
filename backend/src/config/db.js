@@ -9,7 +9,8 @@ const connectDB = async () => {
     console.log("DB_STATUS: Conectado");
   } catch (err) {
     console.error(`DB_ERROR: ${err.message}`);
-    process.exit(1);
+    // Não encerra o processo para que o servidor continue rodando no Render
+    // e possa retornar respostas de erro adequadas
   }
 };
 
