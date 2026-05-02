@@ -255,33 +255,45 @@ class CourseController {
 
   /**
    * GET /api/v1/courses/:id/stats
-   * Retorna estatísticas de um curso para o dashboard do coordenador.
+   * Retorna estatísticas de um curso (ou todos gerenciados) para o dashboard do coordenador.
    */
   async getCourseStats(req, res) {
     try {
       const { id } = req.params;
       const user = req.user;
+      let courseIds = [];
 
-      // Verificar se curso existe
-      const course = await Course.findById(id);
-      if (!course) {
-        return res.status(404).json({ error: "NOT_FOUND: Curso não localizado." });
+      if (id === 'all') {
+        // Se for 'all', pega todos os cursos do coordenador (ou todos se for ADMIN)
+        if (user.role === 'COORDINATOR') {
+          courseIds = user.courses.map(cId => new mongoose.Types.ObjectId(cId));
+        } else {
+          const allCourses = await Course.find({});
+          courseIds = allCourses.map(c => c._id);
+        }
+      } else {
+        // Verificar se curso existe
+        const course = await Course.findById(id);
+        if (!course) {
+          return res.status(404).json({ error: "NOT_FOUND: Curso não localizado." });
+        }
+
+        // Verificação de permissão: Coordenador só vê stats dos seus cursos
+        if (user.role === 'COORDINATOR' && !user.courses.includes(id)) {
+          return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para ver estatísticas deste curso." });
+        }
+        courseIds = [new mongoose.Types.ObjectId(id)];
       }
 
-      // Verificação de permissão: Coordenador só vê stats dos seus cursos
-      if (user.role === 'COORDINATOR' && !user.courses.includes(id)) {
-        return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para ver estatísticas deste curso." });
-      }
-
-      // 1. Total de Alunos no curso
+      // 1. Total de Alunos nos cursos selecionados
       const totalAlunos = await User.countDocuments({ 
         role: 'STUDENT', 
-        courses: id 
+        courses: { $in: courseIds } 
       });
 
       // 2. Estatísticas de Atividades
       const activitiesStats = await Activity.aggregate([
-        { $match: { course: new mongoose.Types.ObjectId(id) } },
+        { $match: { course: { $in: courseIds } } },
         { 
           $group: {
             _id: "$status",
