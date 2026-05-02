@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const ActivityService = require('../services/activityService');
 const EmailService = require('../services/EmailService');
 const FileProcessingService = require('../services/FileProcessingService');
@@ -73,8 +74,9 @@ class ActivityController {
       if (user.role === 'COORDINATOR' && user.courses) {
         // Se um curso específico foi pedido, verifica se o coord tem acesso a ele
         if (req.query.courseId) {
-          if (user.courses.includes(req.query.courseId)) {
-            query.course = req.query.courseId;
+          const userCourseIds = user.courses.map(id => id.toString());
+          if (userCourseIds.includes(req.query.courseId)) {
+            query.course = new mongoose.Types.ObjectId(req.query.courseId);
           } else {
             // Se ele tentou acessar um curso que não é dele, forçamos um filtro vazio por segurança
             query.course = { $in: [] };
