@@ -89,7 +89,8 @@ class UserController {
 
       // NOVO: Filtro por curso
       if (req.query.courseId) {
-        query.courses = req.query.courseId;
+        const mongoose = require('mongoose');
+        query.courses = new mongoose.Types.ObjectId(req.query.courseId);
       }
 
       const users = await User.find(query).select('-password -__v');
