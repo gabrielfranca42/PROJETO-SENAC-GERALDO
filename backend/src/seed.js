@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Course = require('./models/Course');
@@ -51,7 +51,18 @@ const seedData = async () => {
       ]
     });
     await ads.save();
-    console.log('Cursos criados: Gastronomia e Análise e Desenvolvimento de Sistemas.');
+
+    const jogos = new Course({
+      name: 'Jogos Digitais',
+      totalHoursRequired: 360,
+      categories: [
+        { name: 'Desenvolvimento de Ativos', maxHours: 180 },
+        { name: 'Game Jams', maxHours: 100 },
+        { name: 'Palestras Técnicas', maxHours: 80 }
+      ]
+    });
+    await jogos.save();
+    console.log('Cursos criados: Gastronomia, ADS e Jogos Digitais.');
 
     console.log('--- Inserindo Coordenadores ---');
     const coordGastro = new User({
@@ -66,56 +77,65 @@ const seedData = async () => {
     await gastronomia.save();
 
     const coordAds = new User({
-      name: 'Coordenadora ADS',
+      name: 'Coordenadora ADS e Jogos',
       email: 'coord.ads@gmail.com',
       password: '1234',
       role: 'COORDINATOR',
-      courses: [ads._id.toString()]
+      courses: [ads._id.toString(), jogos._id.toString()]
     });
     await coordAds.save();
     ads.coordinator = coordAds._id;
     await ads.save();
+    jogos.coordinator = coordAds._id;
+    await jogos.save();
     console.log('Coordenadores criados e vinculados aos cursos.');
 
     console.log('--- Inserindo Alunos ---');
+    const todosCursos = [gastronomia, ads, jogos];
     const alunos = [];
-    for (let i = 1; i <= 5; i++) {
-      const isGastro = i <= 2; // 2 alunos para Gastronomia, 3 para ADS
-      const course = isGastro ? gastronomia : ads;
-      const aluno = new User({
-        name: `Aluno Teste ${i}`,
-        email: `aluno${i}@gmail.com`,
-        password: '1234',
-        role: 'STUDENT',
-        matricula: `MAT2026${i}`,
-        courses: [course._id.toString()]
-      });
-      await aluno.save();
-      alunos.push({ user: aluno, course });
+    
+    // 10 alunos para cada curso
+    for (const curso of todosCursos) {
+      for (let i = 1; i <= 10; i++) {
+        const aluno = new User({
+          name: `Aluno ${curso.name} ${i}`,
+          email: `aluno.${curso.name.toLowerCase().replace(/ /g, '.')}.${i}@gmail.com`,
+          password: '1234',
+          role: 'STUDENT',
+          matricula: `MAT-${curso.name.substring(0, 3).toUpperCase()}-${202600 + i}`,
+          courses: [curso._id.toString()]
+        });
+        await aluno.save();
+        alunos.push({ user: aluno, course: curso });
+      }
     }
-    console.log(`5 Alunos criados e vinculados aos cursos.`);
+    console.log(`${alunos.length} Alunos criados.`);
 
     console.log('--- Inserindo Atividades (Certificados) ---');
     const statusTypes = ['PENDING', 'APPROVED', 'REJECTED'];
-    for (let i = 0; i < 15; i++) {
-      // Distribui as atividades entre os alunos
-      const { user: student, course } = alunos[i % 5];
-      // Escolhe uma categoria do curso aleatória
-      const category = course.categories[i % course.categories.length].name;
-      const status = statusTypes[i % 3]; // Vai gerar atividades pendentes, aprovadas e reprovadas
-      
-      const activity = new Activity({
-        student: student._id,
-        course: course._id,
-        title: `Certificado de Participação - Evento ${i + 1}`,
-        hoursClaimed: Math.floor(Math.random() * 20) + 5, // Horas entre 5 e 24
-        category: category,
-        certificateUrl: `http://example.com/cert${i}.pdf`,
-        status: status,
-        feedback: status === 'REJECTED' ? 'Faltam assinaturas no documento.' : ''
-      });
-      await activity.save();
+    
+    for (const item of alunos) {
+      const { user: student, course } = item;
+      // 3 atividades por aluno para ter volume
+      for (let j = 0; j < 3; j++) {
+        const category = course.categories[j % course.categories.length].name;
+        const status = statusTypes[(student.name.length + j) % 3]; 
+        
+        const activity = new Activity({
+          student: student._id,
+          course: course._id,
+          title: `Certificado ${j + 1} - ${category}`,
+          hoursClaimed: Math.floor(Math.random() * 20) + 5,
+          category: category,
+          certificateUrl: `http://example.com/cert_${student._id}_${j}.pdf`,
+          status: status,
+          feedback: status === 'REJECTED' ? 'Documento ilegível ou incompleto.' : ''
+        });
+        await activity.save();
+      }
     }
+    console.log('Massa de atividades inserida para teste.');
+
     console.log('15 Atividades (certificados) inseridas para teste.');
 
     console.log('--- SEED CONCLUÍDO COM SUCESSO ---');
