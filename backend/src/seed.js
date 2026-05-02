@@ -7,8 +7,10 @@ const connectDB = require('./config/db');
 
 const seedData = async () => {
   try {
-    // Garantir uso da URI correta do .env ou mock local caso falhe
-    process.env.MONGO_URI = process.env.MONGO_URI || "mongodb+srv://tjj91434_db_user:XjDsvLhlmHG4qYrc@cluster0.mzlyl63.mongodb.net/?appName=Cluster0";
+    // Garantir uso da URI correta do .env
+    if (!process.env.MONGO_URI) {
+      throw new Error("ERRO FATAL: MONGO_URI não definida no .env. Não é seguro usar fallback hardcoded.");
+    }
     
     await connectDB();
     console.log('--- Iniciando limpeza do banco de dados ---');
