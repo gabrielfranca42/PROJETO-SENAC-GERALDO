@@ -29,7 +29,8 @@ const authenticate = (req, res, next) => {
     // INJEÇÃO CRÍTICA: Aqui o req.user é preenchido para o próximo middleware
     req.user = {
       id: decoded.id,
-      role: decoded.role
+      role: decoded.role,
+      courses: decoded.courses || []
     };
 
     return next();

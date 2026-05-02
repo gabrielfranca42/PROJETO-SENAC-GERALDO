@@ -222,8 +222,12 @@ class ActivityController {
       }
       await activity.save();
 
+      let auditAction = 'ACTIVITY_REJECTED';
+      if (status === 'APPROVED') auditAction = 'ACTIVITY_APPROVED';
+      if (status === 'NEEDS_REVISION') auditAction = 'ACTIVITY_REVISION_REQUESTED';
+
       await AuditLog.create({
-        action: status === 'APPROVED' ? 'ACTIVITY_APPROVED' : 'ACTIVITY_REJECTED',
+        action: auditAction,
         performedBy: coordinator.id,
         targetResource: 'Activity',
         resourceId: activity._id,

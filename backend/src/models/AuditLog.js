@@ -12,7 +12,8 @@ const AuditLogSchema = new mongoose.Schema({
       'COURSE_DELETED',
       'USER_ROLE_UPDATED',
       'CATEGORY_ADDED',
-      'CATEGORY_REMOVED'
+      'CATEGORY_REMOVED',
+      'ACTIVITY_REVISION_REQUESTED'
     ]
   },
   performedBy: { 
