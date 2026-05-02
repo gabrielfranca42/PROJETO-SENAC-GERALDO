@@ -98,4 +98,11 @@ router.put(
   ActivityController.adjustHours
 );
 
-module.exports = router;
+/**
+ * GET /api/v1/activities/:id/certificate
+ * Visualiza o arquivo binário (PDF/Imagem) salvo no MongoDB.
+ * Nota: Aberta sem autenticação para permitir abertura direta via window.open no navegador.
+ */
+router.get('/:id/certificate', ActivityController.viewCertificate);
+
+module.exports = router;
