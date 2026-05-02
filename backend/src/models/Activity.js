@@ -6,7 +6,9 @@ const ActivitySchema = new mongoose.Schema({
   title: { type: String, required: true },
   hoursClaimed: { type: Number, required: true },
   category: { type: String, required: true },
-  certificateUrl: { type: String, required: true },
+  certificateUrl: { type: String }, // Agora opcional, pois o dado real está no fileData
+  fileData: { type: Buffer },       // Armazena o arquivo binário
+  fileMimetype: { type: String },   // Armazena o tipo (PDF, JPG, etc)
   ocrText: { type: String }, // Armazena o texto extraído para auditoria
   status: { 
     type: String, 
