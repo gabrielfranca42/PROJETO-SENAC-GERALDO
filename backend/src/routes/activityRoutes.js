@@ -18,7 +18,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post(
   '/',
   authenticate,
-  authorize(['STUDENT']),
+  authorize(['STUDENT', 'COORDINATOR']),
   upload.single('certificate'),
   ActivityController.submitActivity
 );
@@ -85,6 +85,17 @@ router.delete(
   authenticate,
   authorize(['STUDENT']),
   ActivityController.deleteActivity
+);
+
+/**
+ * PUT /api/v1/activities/:id/adjust-hours
+ * Coordenador ajusta carga horária de uma atividade.
+ */
+router.put(
+  '/:id/adjust-hours',
+  authenticate,
+  authorize(['COORDINATOR']),
+  ActivityController.adjustHours
 );
 
 module.exports = router;

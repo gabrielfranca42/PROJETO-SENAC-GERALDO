@@ -13,9 +13,19 @@ class ActivityController {
   // ------------------------------------------------------------------------
   async submitActivity(req, res) {
     try {
-      const { courseId, category, hoursClaimed, title } = req.body;
-      const studentId = req.user.id; 
+      const { courseId, category, hoursClaimed, title, studentId: targetStudentId } = req.body;
+      
+      let studentId = req.user.id;
 
+      // Se for coordenador submetendo para um aluno
+      if (req.user.role === 'COORDINATOR' && targetStudentId) {
+        // Validar se o coordenador tem acesso a este aluno/curso
+        const userCourseIds = req.user.courses.map(id => String(id));
+        if (!userCourseIds.includes(String(courseId))) {
+          return res.status(403).json({ error: "FORBIDDEN: Você não gerencia este curso." });
+        }
+        studentId = targetStudentId;
+      }
       let extractedText = null;
 
       if (req.file) {
@@ -63,6 +73,11 @@ class ActivityController {
       // Filtro por curso
       if (req.query.courseId) {
         query.course = req.query.courseId;
+      }
+
+      // NOVO: Filtro por Aluno (Histórico)
+      if (req.query.studentId) {
+        query.student = req.query.studentId;
       }
 
       // Estudante só vê suas próprias atividades
@@ -242,6 +257,62 @@ class ActivityController {
 
       return res.status(200).json({ 
         message: "Atividade avaliada com sucesso.", 
+        activity 
+      });
+
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // AJUSTAR HORAS (PUT /api/v1/activities/:id/adjust-hours)
+  // Coordenador altera carga horária com justificativa
+  // ------------------------------------------------------------------------
+  async adjustHours(req, res) {
+    try {
+      const { id } = req.params;
+      const { newHours, reason } = req.body;
+      const coordinator = req.user;
+
+      if (!newHours || !reason) {
+        return res.status(400).json({ error: "BAD_REQUEST: Nova carga horária e justificativa são obrigatórias." });
+      }
+
+      const activity = await Activity.findById(id);
+      if (!activity) {
+        return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
+      }
+
+      // Validação de permissão do coordenador
+      if (coordinator.role === 'COORDINATOR') {
+        const userCourseIds = coordinator.courses.map(id => String(id));
+        const activityCourseId = String(activity.course);
+        if (!userCourseIds.includes(activityCourseId)) {
+          return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para ajustar certificados deste curso." });
+        }
+      }
+
+      const oldHours = activity.hoursClaimed;
+      activity.hoursClaimed = Number(newHours);
+      activity.feedback = `[Ajuste de Horas]: ${reason} (Anterior: ${oldHours}h)`;
+      
+      await activity.save();
+
+      await AuditLog.create({
+        action: 'ACTIVITY_HOURS_ADJUSTED',
+        performedBy: coordinator.id,
+        targetResource: 'Activity',
+        resourceId: activity._id,
+        details: { 
+          oldHours,
+          newHours,
+          reason 
+        }
+      });
+
+      return res.status(200).json({ 
+        message: "Carga horária ajustada com sucesso.", 
         activity 
       });
 
