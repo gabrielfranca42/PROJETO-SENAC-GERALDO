@@ -6,11 +6,11 @@ const connectDB = require('./config/db');
 process.env.MONGO_URI = process.env.MONGO_URI || "mongodb://root:rootpassword@127.0.0.1:27017/pi_db?authSource=admin";
 process.env.JWT_SECRET = process.env.JWT_SECRET || "sigac-dev-secret-key-2026";
 
-connectDB();
-
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+// Inicia o servidor primeiro, depois conecta ao DB
+app.listen(PORT, async () => {
   console.log(`Servidor rodando na porta ${PORT}.`);
   console.log(`API disponível em: http://localhost:${PORT}/api/v1`);
-});
+  await connectDB();
+});
