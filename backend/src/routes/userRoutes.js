@@ -66,7 +66,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['SUPER_ADMIN']),
+  authorize(['SUPER_ADMIN', 'COORDINATOR']),
   UserController.deleteUser
 );
 

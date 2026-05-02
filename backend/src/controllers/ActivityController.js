@@ -203,8 +203,17 @@ class ActivityController {
         return res.status(404).json({ error: "NOT_FOUND: Atividade não encontrada." });
       }
 
-      if (!['APPROVED', 'REJECTED'].includes(status)) {
-         return res.status(400).json({ error: "BAD_REQUEST: Status inválido. Use APPROVED ou REJECTED." });
+      if (!['APPROVED', 'REJECTED', 'NEEDS_REVISION'].includes(status)) {
+         return res.status(400).json({ error: "BAD_REQUEST: Status inválido. Use APPROVED, REJECTED ou NEEDS_REVISION." });
+      }
+
+      // Validação de permissão do coordenador
+      if (coordinator.role === 'COORDINATOR') {
+        const userCourseIds = coordinator.courses.map(id => String(id));
+        const activityCourseId = activity.course._id ? String(activity.course._id) : String(activity.course);
+        if (!userCourseIds.includes(activityCourseId)) {
+          return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para avaliar certificados deste curso." });
+        }
       }
       
       activity.status = status;
