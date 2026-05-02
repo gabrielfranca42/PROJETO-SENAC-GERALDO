@@ -62,8 +62,8 @@ class ActivityService {
       throw new Error(`UNPROCESSABLE_ENTITY: O limite total de ${categoryRule.maxHours}h para a categoria '${category}' será excedido.`);
     }
 
-    // 3.2 - Limite Semestral da Categoria
-    if (currentStats.totalCategorySemester + hoursClaimed > categoryRule.semesterMaxHours) {
+    // 3.2 - Limite Semestral da Categoria (Ignora se for 0)
+    if (categoryRule.semesterMaxHours > 0 && currentStats.totalCategorySemester + hoursClaimed > categoryRule.semesterMaxHours) {
       throw new Error(`UNPROCESSABLE_ENTITY: O limite semestral de ${categoryRule.semesterMaxHours}h para a categoria '${category}' será excedido no semestre ${semester}.`);
     }
 
@@ -72,8 +72,8 @@ class ActivityService {
       throw new Error(`UNPROCESSABLE_ENTITY: O envio excederá a carga horária total exigida pelo curso (${courseRules.totalHoursRequired}h).`);
     }
 
-    // 3.4 - Limite Semestral do Curso
-    if (currentStats.totalCourseSemester + hoursClaimed > courseRules.semesterMaxHours) {
+    // 3.4 - Limite Semestral do Curso (Ignora se for 0)
+    if (courseRules.semesterMaxHours > 0 && currentStats.totalCourseSemester + hoursClaimed > courseRules.semesterMaxHours) {
       throw new Error(`UNPROCESSABLE_ENTITY: O envio excederá o limite máximo de ${courseRules.semesterMaxHours}h permitidas por semestre para este curso.`);
     }
 
