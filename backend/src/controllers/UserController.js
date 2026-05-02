@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 
 class UserController {
@@ -89,7 +90,6 @@ class UserController {
 
       // NOVO: Filtro por curso
       if (req.query.courseId) {
-        const mongoose = require('mongoose');
         query.courses = new mongoose.Types.ObjectId(req.query.courseId);
       }
 
