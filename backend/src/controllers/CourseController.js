@@ -1,4 +1,7 @@
+const mongoose = require('mongoose');
 const Course = require('../models/Course');
+const User = require('../models/User');
+const Activity = require('../models/Activity');
 const AuditLog = require('../models/AuditLog');
 
 /**
@@ -245,6 +248,68 @@ class CourseController {
       });
 
       return res.status(204).send();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  /**
+   * GET /api/v1/courses/:id/stats
+   * Retorna estatísticas de um curso para o dashboard do coordenador.
+   */
+  async getCourseStats(req, res) {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+
+      // Verificar se curso existe
+      const course = await Course.findById(id);
+      if (!course) {
+        return res.status(404).json({ error: "NOT_FOUND: Curso não localizado." });
+      }
+
+      // Verificação de permissão: Coordenador só vê stats dos seus cursos
+      if (user.role === 'COORDINATOR' && !user.courses.includes(id)) {
+        return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para ver estatísticas deste curso." });
+      }
+
+      // 1. Total de Alunos no curso
+      const totalAlunos = await User.countDocuments({ 
+        role: 'STUDENT', 
+        courses: id 
+      });
+
+      // 2. Estatísticas de Atividades
+      const activitiesStats = await Activity.aggregate([
+        { $match: { course: new mongoose.Types.ObjectId(id) } },
+        { 
+          $group: {
+            _id: "$status",
+            count: { $sum: 1 },
+            totalHours: { $sum: "$hoursClaimed" }
+          }
+        }
+      ]);
+
+      // Formatar estatísticas de atividades
+      const stats = {
+        totalAlunos,
+        pendentes: 0,
+        aprovadas: 0,
+        rejeitadas: 0,
+        totalHorasAprovadas: 0
+      };
+
+      activitiesStats.forEach(item => {
+        if (item._id === 'PENDING') stats.pendentes = item.count;
+        if (item._id === 'APPROVED') {
+          stats.aprovadas = item.count;
+          stats.totalHorasAprovadas = item.totalHours;
+        }
+        if (item._id === 'REJECTED') stats.rejeitadas = item.count;
+      });
+
+      return res.status(200).json(stats);
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }

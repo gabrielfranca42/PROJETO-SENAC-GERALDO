@@ -38,6 +38,17 @@ router.get(
 );
 
 /**
+ * GET /api/v1/courses/:id/stats
+ * Estatísticas do curso para o dashboard.
+ */
+router.get(
+  '/:id/stats',
+  authenticate,
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
+  CourseController.getCourseStats
+);
+
+/**
  * PUT /api/v1/courses/:id
  * Atualização completa de um curso.
  */
