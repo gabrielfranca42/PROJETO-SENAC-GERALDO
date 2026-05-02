@@ -13,7 +13,8 @@ const AuditLogSchema = new mongoose.Schema({
       'USER_ROLE_UPDATED',
       'CATEGORY_ADDED',
       'CATEGORY_REMOVED',
-      'ACTIVITY_REVISION_REQUESTED'
+      'ACTIVITY_REVISION_REQUESTED',
+      'ACTIVITY_HOURS_ADJUSTED'
     ]
   },
   performedBy: { 
