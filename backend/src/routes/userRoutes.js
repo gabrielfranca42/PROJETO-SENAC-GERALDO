@@ -33,7 +33,7 @@ router.get(
 router.get(
   '/',
   authenticate,
-  authorize(['SUPER_ADMIN', 'ADMIN']),
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
   UserController.getAllUsers
 );
 
@@ -44,7 +44,7 @@ router.get(
 router.get(
   '/:id',
   authenticate,
-  authorize(['SUPER_ADMIN', 'ADMIN']),
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
   UserController.getUserById
 );
 
@@ -55,7 +55,7 @@ router.get(
 router.put(
   '/:id',
   authenticate,
-  authorize(['SUPER_ADMIN', 'ADMIN']),
+  authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
   UserController.updateUser
 );
 
