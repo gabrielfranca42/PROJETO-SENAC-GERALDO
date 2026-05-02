@@ -10,7 +10,7 @@ const ActivitySchema = new mongoose.Schema({
   ocrText: { type: String }, // Armazena o texto extraído para auditoria
   status: { 
     type: String, 
-    enum: ['PENDING', 'APPROVED', 'REJECTED'], 
+    enum: ['PENDING', 'APPROVED', 'REJECTED', 'NEEDS_REVISION'], 
     default: 'PENDING' 
   },
   feedback: { type: String },

@@ -88,9 +88,26 @@ class UserController {
         query.role = req.query.role.toUpperCase();
       }
 
-      // NOVO: Filtro por curso
-      if (req.query.courseId) {
-        query.courses = new mongoose.Types.ObjectId(req.query.courseId);
+      // Restrição para Coordenadores: só ver alunos de seus próprios cursos
+      if (req.user.role === 'COORDINATOR') {
+        const userCourseIds = req.user.courses || [];
+        
+        // Se pediu um curso específico, valida se o coord tem acesso
+        if (req.query.courseId) {
+          if (!userCourseIds.includes(req.query.courseId)) {
+            return res.status(403).json({ error: "FORBIDDEN: Você não tem permissão para acessar este curso." });
+          }
+          query.courses = req.query.courseId;
+        } else {
+          // Se não pediu curso, filtra por todos os seus cursos
+          query.courses = { $in: userCourseIds };
+        }
+        
+        // Coordenador só pode listar alunos por esta via (segurança extra)
+        query.role = 'STUDENT';
+      } else if (req.query.courseId) {
+        // Para ADMIN/SUPER_ADMIN, o filtro de curso é livre
+        query.courses = req.query.courseId;
       }
 
       const users = await User.find(query).select('-password -__v');
@@ -149,10 +166,33 @@ class UserController {
    */
   deleteUser = async (req, res) => {
     try {
-      const user = await User.findByIdAndDelete(req.params.id);
-      if (!user) {
+      const userToDelete = await User.findById(req.params.id);
+      
+      if (!userToDelete) {
         return res.status(404).json({ error: "NOT_FOUND: Usuário não encontrado." });
       }
+
+      // Lógica de permissão para deleção
+      if (req.user.role === 'COORDINATOR') {
+        // Coordenador só deleta Alunos
+        if (userToDelete.role !== 'STUDENT') {
+          return res.status(403).json({ error: "FORBIDDEN: Coordenadores só podem excluir alunos." });
+        }
+        
+        // E só se o aluno for de um curso do coordenador
+        const isStudentInMyCourse = userToDelete.courses.some(cId => 
+          req.user.courses.includes(String(cId))
+        );
+        
+        if (!isStudentInMyCourse) {
+          return res.status(403).json({ error: "FORBIDDEN: Este aluno não pertence aos seus cursos gerenciados." });
+        }
+      } else if (req.user.role === 'ADMIN' && userToDelete.role === 'SUPER_ADMIN') {
+        // Admin não deleta Super Admin
+        return res.status(403).json({ error: "FORBIDDEN: Administradores não podem excluir Super Administradores." });
+      }
+
+      await User.findByIdAndDelete(req.params.id);
       return res.status(204).send();
     } catch (error) {
       return res.status(500).json({ error: error.message });
