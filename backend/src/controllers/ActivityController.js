@@ -71,7 +71,18 @@ class ActivityController {
 
       // Coordenador vê atividades dos cursos que gerencia
       if (user.role === 'COORDINATOR' && user.courses) {
-        query.course = { $in: user.courses };
+        // Se um curso específico foi pedido, verifica se o coord tem acesso a ele
+        if (req.query.courseId) {
+          if (user.courses.includes(req.query.courseId)) {
+            query.course = req.query.courseId;
+          } else {
+            // Se ele tentou acessar um curso que não é dele, forçamos um filtro vazio por segurança
+            query.course = { $in: [] };
+          }
+        } else {
+          // Se não pediu um curso específico, mostra todos os que ele gerencia
+          query.course = { $in: user.courses };
+        }
       }
 
       const activities = await Activity.find(query)

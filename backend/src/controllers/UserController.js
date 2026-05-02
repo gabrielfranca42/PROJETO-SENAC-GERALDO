@@ -87,6 +87,11 @@ class UserController {
         query.role = req.query.role.toUpperCase();
       }
 
+      // NOVO: Filtro por curso
+      if (req.query.courseId) {
+        query.courses = req.query.courseId;
+      }
+
       const users = await User.find(query).select('-password -__v');
       return res.status(200).json(users);
     } catch (error) {
