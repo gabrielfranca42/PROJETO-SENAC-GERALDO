@@ -36,14 +36,15 @@ class ActivityController {
       }
 
       const activity = await ActivityService.validateAndSubmit({
-        studentId,
-        courseId,
+        student: studentId,
+        course: courseId,
         category,
         hoursClaimed: Number(hoursClaimed),
         title,
         ocrText: extractedText,
         fileData: req.file ? req.file.buffer : null,
-        fileMimetype: req.file ? req.file.mimetype : null
+        fileMimetype: req.file ? req.file.mimetype : null,
+        semester: req.body.semester || "2024.1" // Adicionado para compatibilidade com o Service
       });
 
       const coordinators = await User.find({ role: 'COORDINATOR', courses: courseId });
