@@ -1,14 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const ActivityController = require('../controllers/ActivityController');
+const activityController = require('./activities.controller');
 
 // IMPORTAÇÕES DE MIDDLEWARES
 // Decisão Técnica: Adicionado 'authenticate' para garantir a extração do req.user antes do 'authorize'
-const authenticate = require('../middlewares/auth'); 
-const authorize = require('../middlewares/authRole');
+const authenticate = require('../../middlewares/auth'); 
+const authorize = require('../../middlewares/authRole');
 
-const upload = multer({ storage: multer.memoryStorage() });
+const path = require('path');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../../../../uploads/'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 /**
  * POST /api/v1/activities
@@ -20,7 +30,7 @@ router.post(
   authenticate,
   authorize(['STUDENT', 'COORDINATOR']),
   upload.single('certificate'),
-  ActivityController.submitActivity
+  activityController.submitActivity
 );
 
 /**
@@ -33,7 +43,7 @@ router.get(
   '/',
   authenticate,
   authorize(['STUDENT', 'COORDINATOR']),
-  ActivityController.getAllActivities
+  activityController.getAllActivities
 );
 
 /**
@@ -45,7 +55,7 @@ router.get(
   '/:id',
   authenticate,
   authorize(['STUDENT', 'COORDINATOR']),
-  ActivityController.getActivityById
+  activityController.getActivityById
 );
 
 /**
@@ -59,7 +69,7 @@ router.put(
   authenticate,
   authorize(['STUDENT']),
   upload.single('certificate'),
-  ActivityController.updateActivity
+  activityController.updateActivity
 );
 
 /**
@@ -71,7 +81,7 @@ router.put(
   '/:id/evaluate',
   authenticate,
   authorize(['COORDINATOR']),
-  ActivityController.evaluateActivity
+  activityController.evaluateActivity
 );
 
 /**
@@ -84,7 +94,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize(['STUDENT']),
-  ActivityController.deleteActivity
+  activityController.deleteActivity
 );
 
 /**
@@ -95,14 +105,7 @@ router.put(
   '/:id/adjust-hours',
   authenticate,
   authorize(['COORDINATOR']),
-  ActivityController.adjustHours
+  activityController.adjustHours
 );
-
-/**
- * GET /api/v1/activities/:id/certificate
- * Visualiza o arquivo binário (PDF/Imagem) salvo no MongoDB.
- * Nota: Aberta sem autenticação para permitir abertura direta via window.open no navegador.
- */
-router.get('/:id/certificate', ActivityController.viewCertificate);
 
 module.exports = router;

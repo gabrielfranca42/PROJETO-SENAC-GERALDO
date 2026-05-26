@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const Course = require('../models/Course');
-const User = require('../models/User');
-const Activity = require('../models/Activity');
-const AuditLog = require('../models/AuditLog');
+const Course = require('../../modules/courses/course.model');
+const User = require('../../modules/users/user.model');
+const Activity = require('../../modules/activities/activity.model');
+const AuditLog = require('../../modules/dashboard/auditlog.model');
 
 /**
  * @class CourseController

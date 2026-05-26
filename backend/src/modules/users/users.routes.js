@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 // Importações de Controllers e Middlewares
-const UserController = require('../controllers/UserController');
-const authenticate = require('../middlewares/auth');
-const authorize = require('../middlewares/authRole');
+const userController = require('./users.controller');
+const authenticate = require('../../middlewares/auth');
+const authorize = require('../../middlewares/authRole');
 
 // =========================================================================
 // DEFINIÇÃO DE ROTAS HTTP
@@ -14,7 +14,7 @@ const authorize = require('../middlewares/authRole');
  * POST /api/v1/users/register
  * Delega a requisição ao método 'register' do UserController.
  */
-router.post('/register', UserController.register);
+router.post('/register', userController.register);
 
 /**
  * GET /api/v1/users/me
@@ -23,7 +23,7 @@ router.post('/register', UserController.register);
 router.get(
   '/me',
   authenticate,
-  UserController.getProfile 
+  userController.getProfile 
 );
 
 /**
@@ -34,7 +34,7 @@ router.get(
   '/',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
-  UserController.getAllUsers
+  userController.getAllUsers
 );
 
 /**
@@ -45,7 +45,7 @@ router.get(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
-  UserController.getUserById
+  userController.getUserById
 );
 
 /**
@@ -56,7 +56,7 @@ router.put(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
-  UserController.updateUser
+  userController.updateUser
 );
 
 /**
@@ -67,7 +67,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'COORDINATOR']),
-  UserController.deleteUser
+  userController.deleteUser
 );
 
 module.exports = router;
