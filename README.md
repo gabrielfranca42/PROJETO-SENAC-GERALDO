@@ -145,3 +145,21 @@ backend/
 O frontend React está em um repositório separado: [FRONTEND-REACT-PI](https://github.com/gabrielfranca42/FRONTEND-REACT-PI)
 
 O frontend se conecta a esta API via `http://localhost:3000/api/v1`.
+
+
+## Configuração do arquivo .env
+
+Na pasta `backend`, crie um arquivo `.env` com base no arquivo `.env.example`.
+
+Variáveis utilizadas:
+- `MONGO_URI`
+- `JWT_SECRET`
+- `PORT`
+
+Exemplo de conteúdo:
+
+```env
+MONGO_URI=mongodb://root:rootpassword@127.0.0.1:27017/pi_db?authSource=admin
+JWT_SECRET=troque_esta_chave_em_producao
+PORT=3000
+```
