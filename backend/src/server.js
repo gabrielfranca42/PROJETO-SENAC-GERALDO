@@ -14,7 +14,7 @@ app.listen(PORT, async () => {
   console.log(`API disponível em: http://localhost:${PORT}/api/v1`);
   await connectDB();
 });
-const URL_DO_SEU_SITE = "https://seu-projeto-senac.onrender.com"; // <-- Cole a sua URL do Render aqui
+const URL_DO_SEU_SITE = "https://projeto-senac-geraldo-2.onrender.com"; 
 
 setInterval(async () => {
   try {
