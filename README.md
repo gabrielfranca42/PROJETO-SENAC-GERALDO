@@ -163,3 +163,29 @@ MONGO_URI=mongodb://root:rootpassword@127.0.0.1:27017/pi_db?authSource=admin
 JWT_SECRET=troque_esta_chave_em_producao
 PORT=3000
 ```
+
+## Build da imagem Docker
+
+A imagem do backend pode ser gerada a partir do `Dockerfile` localizado na pasta `backend`.
+
+Exemplo de build manual:
+
+```bash
+docker build -t sigac-backend ./backend
+```
+Exemplo de execução da imagem:
+
+```bash
+docker run -p 3000:3000 --env-file ./backend/.env sigac-backend
+```
+## Ambiente de produção
+
+Em produção, as variáveis de ambiente devem ser definidas com valores próprios do servidor ou serviço utilizado, sem depender dos valores padrão de desenvolvimento.
+
+Principais variáveis:
+- `MONGO_URI`
+- `JWT_SECRET`
+- `PORT`
+
+Recomenda-se utilizar credenciais seguras e separar completamente as configurações de desenvolvimento e produção.
+```
