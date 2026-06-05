@@ -1,22 +1,22 @@
 # Stage 1: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-# Instalação de dependências incluindo devDependencies para o build
+# 1. Busca os arquivos de dentro da pasta backend no GitHub
+COPY backend/package*.json ./
 RUN npm install
-COPY . .
-# Caso utilize TypeScript ou Babel, execute o comando de transpilação
-# RUN npm run build
+# 2. Copia todo o conteúdo da pasta backend para o builder
+COPY backend/ .
 
 # Stage 2: Runtime
 FROM node:20-alpine
 WORKDIR /app
-# Instalação exclusiva de dependências de produção
-COPY package*.json ./
+# 3. Busca o package do runtime também de dentro de backend
+COPY backend/package*.json ./
 RUN npm install --only=production
-# Cópia do artefato buildado ou código-fonte necessário
+
+# 4. Copia a pasta src que foi estruturada corretamente no Stage 1 (builder)
 COPY --from=builder /app/src ./src
-# Definição de usuário não-root para segurança conforme Docker Bench for Security
+
 USER node
 EXPOSE 3000
 CMD ["node", "src/server.js"]
