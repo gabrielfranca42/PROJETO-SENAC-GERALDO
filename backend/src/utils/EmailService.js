@@ -31,6 +31,16 @@ class EmailService {
     };
     return this.transporter.sendMail(mailOptions);
   }
+
+  async sendWelcomeEmail(userEmail, userName, rawPassword) {
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: userEmail,
+      subject: `Bem-vindo ao SIGAC - Suas Credenciais`,
+      text: `Olá ${userName}, bem-vindo ao SIGAC!\n\nSua conta foi criada com sucesso.\nVocê pode fazer login no app usando seu e-mail (${userEmail}) e a seguinte senha temporária: ${rawPassword}\n\nRecomendamos que você altere sua senha após o primeiro acesso.`
+    };
+    return this.transporter.sendMail(mailOptions);
+  }
 }
 
 module.exports = new EmailService();

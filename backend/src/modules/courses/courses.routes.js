@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const CourseController = require('../controllers/CourseController');
-const authenticate = require('../middlewares/auth');
-const authorize = require('../middlewares/authRole');
+const courseController = require('./courses.controller');
+const authenticate = require('../../middlewares/auth');
+const authorize = require('../../middlewares/authRole');
 
 /**
  * POST /api/v1/courses
@@ -12,7 +12,7 @@ router.post(
   '/', 
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']), 
-  CourseController.createCourse
+  courseController.createCourse
 );
 
 /**
@@ -23,7 +23,7 @@ router.get(
   '/',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR', 'STUDENT']),
-  CourseController.getAllCourses
+  courseController.getAllCourses
 );
 
 /**
@@ -34,7 +34,7 @@ router.get(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR', 'STUDENT']),
-  CourseController.getCourseById
+  courseController.getCourseById
 );
 
 /**
@@ -45,7 +45,7 @@ router.get(
   '/:id/stats',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN', 'COORDINATOR']),
-  CourseController.getCourseStats
+  courseController.getCourseStats
 );
 
 /**
@@ -56,7 +56,7 @@ router.put(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
-  CourseController.updateCourse
+  courseController.updateCourse
 );
 
 /**
@@ -67,7 +67,7 @@ router.patch(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
-  CourseController.patchCourse
+  courseController.patchCourse
 );
 
 /**
@@ -78,7 +78,7 @@ router.delete(
   '/:id',
   authenticate,
   authorize(['SUPER_ADMIN']),
-  CourseController.deleteCourse
+  courseController.deleteCourse
 );
 
 // =========================================================================
@@ -93,7 +93,7 @@ router.post(
   '/:id/categories',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
-  CourseController.addCategory
+  courseController.addCategory
 );
 
 /**
@@ -104,7 +104,7 @@ router.delete(
   '/:id/categories/:categoryId',
   authenticate,
   authorize(['SUPER_ADMIN', 'ADMIN']),
-  CourseController.removeCategory
+  courseController.removeCategory
 );
 
 module.exports = router;

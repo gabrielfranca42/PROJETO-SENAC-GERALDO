@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const ActivityService = require('../services/activityService');
-const EmailService = require('../services/EmailService');
-const FileProcessingService = require('../services/FileProcessingService');
-const User = require('../models/User');
-const Activity = require('../models/Activity');
-const AuditLog = require('../models/AuditLog');
+const ActivityService = require('./activities.service');
+const EmailService = require('../../utils/EmailService');
+const FileProcessingService = require('../../utils/FileProcessingService');
+const User = require('../../modules/users/user.model');
+const Activity = require('../../modules/activities/activity.model');
+const AuditLog = require('../../modules/dashboard/auditlog.model');
 
 class ActivityController {
   
@@ -30,7 +30,7 @@ class ActivityController {
 
       if (req.file) {
         extractedText = await FileProcessingService.extractText(
-          req.file.buffer, 
+          req.file.path, 
           req.file.mimetype
         );
       }
@@ -42,8 +42,8 @@ class ActivityController {
         hoursClaimed: Number(hoursClaimed),
         title,
         ocrText: extractedText,
-        fileData: req.file ? req.file.buffer : null,
-        fileMimetype: req.file ? req.file.mimetype : null,
+        fileUrl: req.file ? `/uploads/${req.file.filename}` : null,
+        fileName: req.file ? req.file.originalname : null,
         semester: req.body.semester || "2024.1" // Adicionado para compatibilidade com o Service
       });
 
@@ -109,19 +109,15 @@ class ActivityController {
         .populate('course', 'name')
         .sort({ createdAt: -1 });
 
-      // Gerar URL dinâmica para visualização dos certificados salvos no MongoDB
       const protocol = req.protocol;
       const host = req.get('host');
-      const backendUrl = `${protocol}://${host}/api/v1/activities`;
+      const backendUrl = `${protocol}://${host}`;
 
       const formattedActivities = activities.map(act => {
         const obj = act.toObject();
-        // Se tiver dados no banco, a URL aponta para a nossa rota de download
-        if (act.fileData) {
-          obj.certificateUrl = `${backendUrl}/${act._id}/certificate`;
+        if (act.fileUrl) {
+          obj.certificateUrl = `${backendUrl}${act.fileUrl}`;
         }
-        // Remove os dados binários do JSON de listagem para não pesar a resposta
-        delete obj.fileData;
         return obj;
       });
 
@@ -145,12 +141,11 @@ class ActivityController {
       }
 
       const obj = activity.toObject();
-      if (activity.fileData) {
+      if (activity.fileUrl) {
         const protocol = req.protocol;
         const host = req.get('host');
-        obj.certificateUrl = `${protocol}://${host}/api/v1/activities/${activity._id}/certificate`;
+        obj.certificateUrl = `${protocol}://${host}${activity.fileUrl}`;
       }
-      delete obj.fileData;
 
       return res.status(200).json(obj);
     } catch (error) {
@@ -347,28 +342,6 @@ class ActivityController {
     }
   }
 
-  // ------------------------------------------------------------------------
-  // VISUALIZAR ARQUIVO (GET /api/v1/activities/:id/certificate)
-  // Serve o arquivo binário diretamente do MongoDB
-  // ------------------------------------------------------------------------
-  async viewCertificate(req, res) {
-    try {
-      const activity = await Activity.findById(req.params.id);
-
-      if (!activity || !activity.fileData) {
-        return res.status(404).json({ error: "NOT_FOUND: Arquivo não encontrado." });
-      }
-
-      // Define o tipo do arquivo (PDF, Image, etc) e envia o buffer
-      res.set('Content-Type', activity.fileMimetype || 'application/pdf');
-      // Opcional: Forçar download em vez de abrir no navegador
-      // res.set('Content-Disposition', `inline; filename="certificado_${activity._id}"`);
-      
-      return res.send(activity.fileData);
-    } catch (error) {
-      return res.status(500).json({ error: error.message });
-    }
-  }
 }
 
 module.exports = new ActivityController();

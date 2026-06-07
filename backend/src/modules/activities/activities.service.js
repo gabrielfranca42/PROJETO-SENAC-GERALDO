@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Activity = require('../models/Activity');
-const Course = require('../models/Course');
+const Activity = require('../../modules/activities/activity.model');
+const Course = require('../../modules/courses/course.model');
 
 class ActivityService {
   async validateAndSubmit(data) {
@@ -75,6 +75,20 @@ class ActivityService {
     // 3.4 - Limite Semestral do Curso (Ignora se for 0)
     if (courseRules.semesterMaxHours > 0 && currentStats.totalCourseSemester + hoursClaimed > courseRules.semesterMaxHours) {
       throw new Error(`UNPROCESSABLE_ENTITY: O envio excederá o limite máximo de ${courseRules.semesterMaxHours}h permitidas por semestre para este curso.`);
+    }
+
+    // 3.5 - Validação de Autenticidade via OCR
+    if (data.fileUrl) {
+      if (!data.ocrText || data.ocrText.trim() === '') {
+        throw new Error("UNPROCESSABLE_ENTITY: Não foi possível extrair texto do documento. Envie um certificado válido e legível.");
+      }
+      const textUpper = data.ocrText.toUpperCase();
+      const keywords = ['CERTIFICADO', 'DECLARAÇÃO', 'CONCLUSÃO', 'PARTICIPAÇÃO', 'CARGA HORÁRIA', 'HORAS', 'ATTEST', 'CERTIFICATE', 'DIPLOMA'];
+      const hasKeyword = keywords.some(kw => textUpper.includes(kw));
+      
+      if (!hasKeyword) {
+        throw new Error("UNPROCESSABLE_ENTITY: O documento enviado não parece ser um certificado válido. Faltam palavras-chave como 'Certificado' ou 'Carga Horária'.");
+      }
     }
 
     // 4. Persistência

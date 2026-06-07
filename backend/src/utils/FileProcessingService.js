@@ -8,7 +8,13 @@ class FileProcessingService {
    * @param {String} mimeType - Tipo MIME do arquivo (req.file.mimetype)
    * @returns {Promise<String>} Texto extraído do documento
    */
-  async extractText(fileBuffer, mimeType) {
+  async extractText(fileBufferOrPath, mimeType) {
+    let fileBuffer = fileBufferOrPath;
+    if (typeof fileBufferOrPath === 'string') {
+      const fs = require('fs');
+      fileBuffer = fs.readFileSync(fileBufferOrPath);
+    }
+
     if (mimeType === 'application/pdf') {
       return await this._parsePDF(fileBuffer);
     } 
