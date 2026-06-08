@@ -34,6 +34,18 @@ router.post(
 );
 
 /**
+ * POST /api/v1/activities/extract-ocr
+ * Extrai dados (carga horária e assunto) de um certificado.
+ * Exige apenas autenticação (qualquer role) para evitar uso anônimo.
+ */
+router.post(
+  '/extract-ocr',
+  authenticate,
+  upload.single('certificate'),
+  activityController.extractOcrData
+);
+
+/**
  * GET /api/v1/activities
  * Listagem de atividades.
  * Tanto estudantes quanto coordenadores precisam listar atividades. 

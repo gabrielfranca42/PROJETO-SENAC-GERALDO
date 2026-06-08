@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const ActivityService = require('./activities.service');
 const EmailService = require('../../utils/EmailService');
 const FileProcessingService = require('../../utils/FileProcessingService');
+const orcService = require('../../utils/orcService');
 const User = require('../../modules/users/user.model');
 const Activity = require('../../modules/activities/activity.model');
 const AuditLog = require('../../modules/dashboard/auditlog.model');
@@ -337,6 +338,32 @@ class ActivityController {
         activity 
       });
 
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // EXTRAIR DADOS DO OCR (POST /api/v1/activities/extract-ocr)
+  // Autenticação mínima para evitar uploads aleatórios
+  // ------------------------------------------------------------------------
+  async extractOcrData(req, res) {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "BAD_REQUEST: Nenhum arquivo enviado para leitura." });
+      }
+
+      // Lê o buffer do arquivo em disco e usa o orcService
+      const fs = require('fs');
+      const fileBuffer = fs.readFileSync(req.file.path);
+      
+      const parsedData = await orcService.processarCertificado(fileBuffer, req.file.mimetype);
+
+      return res.status(200).json({
+        text: parsedData.text,
+        extractedHours: parsedData.horasEncontradas,
+        extractedSubject: parsedData.assuntoEncontrado
+      });
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
