@@ -17,7 +17,7 @@ class EmailService {
       from: process.env.SMTP_USER,
       to: coordinatorEmail,
       subject: `SIGAC - Nova submissão de atividade: ${studentName}`,
-      text: `O aluno ${studentName} submeteu uma nova atividade para o curso ${courseName}. Acesse o PWA para validação.`
+      text: `O aluno ${studentName} submeteu uma nova atividade para o curso ${courseName}. Acesse o APP para validação.`
     };
     return this.transporter.sendMail(mailOptions);
   }
@@ -28,6 +28,17 @@ class EmailService {
       to: studentEmail,
       subject: `SIGAC - Atualização de Atividade: ${status}`,
       text: `A sua atividade "${activityTitle}" foi ${status === 'APPROVED' ? 'Aprovada' : 'Reprovada'} pela coordenação.`
+    };
+    return this.transporter.sendMail(mailOptions);
+  }
+
+  async sendLoginAlert(userEmail, userName) {
+    const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    const mailOptions = {
+      from: process.env.SMTP_USER,
+      to: userEmail,
+      subject: `SIGAC - Alerta de Login`,
+      text: `Olá ${userName},\n\nUm novo login foi realizado na sua conta do SIGAC em ${dataHora}.\n\nSe não foi você, por favor contate a coordenação imediatamente.`
     };
     return this.transporter.sendMail(mailOptions);
   }

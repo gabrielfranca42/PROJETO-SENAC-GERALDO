@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const authRepository = require('./auth.repository');
+const EmailService = require('../../utils/EmailService');
 
 class AuthService {
   async login(email, password) {
@@ -30,6 +31,9 @@ class AuthService {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+
+    // Notificação de login assíncrona
+    EmailService.sendLoginAlert(user.email, user.name).catch(console.error);
 
     return {
       token,
