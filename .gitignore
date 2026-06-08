@@ -20,3 +20,6 @@ frontend/build/
 
 # Docker
 .docker/
+
+# Relatórios de Cobertura de Testes (Gerado pelo Jest)
+**/coverage/
