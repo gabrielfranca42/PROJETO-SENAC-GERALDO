@@ -47,8 +47,8 @@ class EmailService {
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: userEmail,
-      subject: `Bem-vindo ao SIGAC - Suas Credenciais`,
-      text: `Olá ${userName}, bem-vindo ao SIGAC!\n\nSua conta foi criada com sucesso.\nVocê pode fazer login no app usando seu e-mail (${userEmail}) e a seguinte senha temporária: ${rawPassword}\n\nRecomendamos que você altere sua senha após o primeiro acesso.`
+      subject: `Bem-vindo ao SIGAC - Acesso ao Aplicativo do Aluno`,
+      text: `Olá ${userName}, bem-vindo(a) ao SIGAC!\n\nSeu cadastro no sistema de Validação de Certificados foi criado pelo seu coordenador.\n\nVocê já pode acessar o aplicativo mobile "ValidaUP" para enviar suas horas complementares.\n\nPara entrar no aplicativo, utilize as seguintes credenciais:\n- E-mail: ${userEmail}\n- Senha: ${rawPassword} (Sua matrícula)\n\nRecomendamos que você altere sua senha após o primeiro acesso.\n\nAtenciosamente,\nCoordenação`
     };
     return this.transporter.sendMail(mailOptions);
   }
