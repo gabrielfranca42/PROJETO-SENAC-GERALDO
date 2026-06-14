@@ -1,8 +1,8 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const Course = require('./models/Course');
-const Activity = require('./models/Activity');
+const User = require('./modules/users/user.model');
+const Course = require('./modules/courses/course.model');
+const Activity = require('./modules/activities/activity.model');
 const connectDB = require('./config/db');
 
 const seedData = async () => {

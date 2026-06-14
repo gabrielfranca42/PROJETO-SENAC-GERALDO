@@ -31,7 +31,7 @@ const processarCertificado = async (buffer, mimetype) => {
   } else {
     throw new Error('Formato não suportado para extração OCR.');
   }
-  
+
   const horasEncontradas = extrairHoras(text);
   const assuntoEncontrado = extrairAssunto(text);
 

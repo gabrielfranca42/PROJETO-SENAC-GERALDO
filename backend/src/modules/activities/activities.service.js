@@ -77,18 +77,21 @@ class ActivityService {
       throw new Error(`UNPROCESSABLE_ENTITY: O envio excederá o limite máximo de ${courseRules.semesterMaxHours}h permitidas por semestre para este curso.`);
     }
 
-    // 3.5 - Validação de Autenticidade via OCR
-    if (data.fileUrl) {
-      if (!data.ocrText || data.ocrText.trim() === '') {
-        throw new Error("UNPROCESSABLE_ENTITY: Não foi possível extrair texto do documento. Envie um certificado válido e legível.");
-      }
-      const textUpper = data.ocrText.toUpperCase();
-      const keywords = ['CERTIFICADO', 'DECLARAÇÃO', 'CONCLUSÃO', 'PARTICIPAÇÃO', 'CARGA HORÁRIA', 'HORAS', 'ATTEST', 'CERTIFICATE', 'DIPLOMA'];
-      const hasKeyword = keywords.some(kw => textUpper.includes(kw));
-      
-      if (!hasKeyword) {
-        throw new Error("UNPROCESSABLE_ENTITY: O documento enviado não parece ser um certificado válido. Faltam palavras-chave como 'Certificado' ou 'Carga Horária'.");
-      }
+    // 3.5 - OCR como ASSISTENTE (não como bloqueador)
+    // 
+    // Decisão Arquitetural: Certificados não possuem um padrão universal de cores,
+    // fonte, idioma ou terminologia. Tentar validar por palavras-chave sempre vai
+    // falhar em algum caso legítimo. Portanto:
+    //
+    //  → O OCR TENTA extrair dados (horas, assunto) para pré-preencher campos.
+    //  → Se não conseguir, o envio NÃO é bloqueado.
+    //  → Quem decide se é um certificado válido é o COORDENADOR (humano).
+    //    Esse é literalmente o papel dele no fluxo de aprovação do sistema.
+    //
+    if (data.ocrText && data.ocrText.trim() !== '') {
+      console.log('[OCR] Texto extraído com sucesso. O coordenador fará a validação visual.');
+    } else {
+      console.warn('[OCR] Nenhum texto extraído do documento. Enviado para revisão manual do coordenador.');
     }
 
     // 4. Persistência
