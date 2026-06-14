@@ -127,4 +127,31 @@ router.put(
   activityController.adjustHours
 );
 
+/**
+ * GET /api/v1/activities/:id/file
+ * Serve o arquivo do certificado armazenado em base64 no MongoDB.
+ * Essa rota é PÚBLICA (não exige token) para que o navegador possa
+ * abrir o link direto em uma nova aba sem headers de autenticação.
+ */
+router.get(
+  '/:id/file',
+  async (req, res) => {
+    try {
+      const Activity = require('./activity.model');
+      const activity = await Activity.findById(req.params.id);
+      
+      if (!activity || !activity.fileData) {
+        return res.status(404).send('Arquivo não encontrado.');
+      }
+
+      const buffer = Buffer.from(activity.fileData, 'base64');
+      res.set('Content-Type', activity.fileMimeType || 'image/jpeg');
+      res.set('Content-Disposition', `inline; filename="${activity.fileName || 'certificado'}"`);
+      return res.send(buffer);
+    } catch (error) {
+      return res.status(500).send('Erro ao buscar arquivo.');
+    }
+  }
+);
+
 module.exports = router;

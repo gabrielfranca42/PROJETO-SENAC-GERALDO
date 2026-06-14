@@ -36,6 +36,20 @@ class ActivityController {
         );
       }
 
+      // Lê o arquivo do disco e converte para base64 antes de salvar no MongoDB
+      // Isso garante que a imagem sobrevive a reinícios do Render (disco efêmero)
+      const fs = require('fs');
+      let fileDataBase64 = null;
+      let fileMimeType = null;
+
+      if (req.file) {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        fileDataBase64 = fileBuffer.toString('base64');
+        fileMimeType = req.file.mimetype;
+        // Remove o arquivo do disco após ler (não precisamos mais dele)
+        fs.unlink(req.file.path, () => {});
+      }
+
       const activity = await ActivityService.validateAndSubmit({
         student: studentId,
         course: courseId,
@@ -44,8 +58,10 @@ class ActivityController {
         title,
         ocrText: extractedText,
         fileUrl: req.file ? `/uploads/${req.file.filename}` : null,
+        fileData: fileDataBase64,
+        fileMimeType: fileMimeType,
         fileName: req.file ? req.file.originalname : null,
-        semester: req.body.semester || "2024.1" // Adicionado para compatibilidade com o Service
+        semester: req.body.semester || "2024.1"
       });
 
       const coordinators = await User.find({ role: 'COORDINATOR', courses: courseId });
@@ -116,9 +132,15 @@ class ActivityController {
 
       const formattedActivities = activities.map(act => {
         const obj = act.toObject();
-        if (act.fileUrl) {
+        // URL permanente: serve o base64 do MongoDB, não depende do disco
+        if (act.fileData) {
+          obj.fileUrl = `/api/v1/activities/${act._id}/file`;
+          obj.certificateUrl = `${backendUrl}/api/v1/activities/${act._id}/file`;
+        } else if (act.fileUrl) {
           obj.certificateUrl = `${backendUrl}${act.fileUrl}`;
         }
+        // Remove o base64 gigante da resposta JSON para não travar o app
+        delete obj.fileData;
         return obj;
       });
 
@@ -142,11 +164,18 @@ class ActivityController {
       }
 
       const obj = activity.toObject();
-      if (activity.fileUrl) {
+      if (activity.fileData) {
+        const protocol = req.protocol;
+        const host = req.get('host');
+        obj.fileUrl = `/api/v1/activities/${activity._id}/file`;
+        obj.certificateUrl = `${protocol}://${host}/api/v1/activities/${activity._id}/file`;
+      } else if (activity.fileUrl) {
         const protocol = req.protocol;
         const host = req.get('host');
         obj.certificateUrl = `${protocol}://${host}${activity.fileUrl}`;
       }
+      // Remove o base64 gigante da resposta JSON
+      delete obj.fileData;
 
       return res.status(200).json(obj);
     } catch (error) {

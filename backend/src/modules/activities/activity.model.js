@@ -7,7 +7,9 @@ const ActivitySchema = new mongoose.Schema({
   hoursClaimed: { type: Number, required: true },
   category: { type: String, required: true },
   certificateUrl: { type: String }, // Agora opcional, pois o dado real está no fileData
-  fileUrl: { type: String },       // Armazena a URL local ou S3 do arquivo
+  fileUrl: { type: String },       // Mantido por retrocompatibilidade
+  fileData: { type: String },      // BASE64 da imagem - armazenamento permanente no MongoDB
+  fileMimeType: { type: String },  // Ex: image/jpeg, application/pdf
   fileName: { type: String },   // Armazena o nome original do arquivo
   semester: { type: String },       // Semestre da atividade (ex: 2024.1)
   ocrText: { type: String }, // Armazena o texto extraído para auditoria
