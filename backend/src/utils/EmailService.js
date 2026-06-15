@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
+// Classe de serviço para gerenciar todos os envios de e-mails da aplicação
 class EmailService {
   constructor() {
+    // Configura o transportador usando as credenciais SMTP definidas no .env
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT,
@@ -12,6 +14,7 @@ class EmailService {
     });
   }
 
+  // Notifica o coordenador quando um aluno submete uma nova atividade (certificado)
   async sendActivitySubmitted(coordinatorEmail, studentName, courseName) {
     const mailOptions = {
       from: process.env.SMTP_USER,
@@ -22,6 +25,7 @@ class EmailService {
     return this.transporter.sendMail(mailOptions);
   }
 
+  // Envia atualização para o aluno quando sua atividade é avaliada (Aprovada/Reprovada)
   async sendStatusUpdate(studentEmail, activityTitle, status) {
     const mailOptions = {
       from: process.env.SMTP_USER,

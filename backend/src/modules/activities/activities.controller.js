@@ -18,9 +18,9 @@ class ActivityController {
       
       let studentId = req.user.id;
 
-      // Se for coordenador submetendo para um aluno
+      // Se for um coordenador submetendo um certificado em nome de um aluno
       if (req.user.role === 'COORDINATOR' && targetStudentId) {
-        // Validar se o coordenador tem acesso a este aluno/curso
+        // Validar se o coordenador tem acesso ao curso associado ao aluno
         const userCourseIds = req.user.courses.map(id => String(id));
         if (!userCourseIds.includes(String(courseId))) {
           return res.status(403).json({ error: "FORBIDDEN: Você não gerencia este curso." });
@@ -36,8 +36,8 @@ class ActivityController {
         );
       }
 
-      // Lê o arquivo do disco e converte para base64 antes de salvar no MongoDB
-      // Isso garante que a imagem sobrevive a reinícios do Render (disco efêmero)
+      // Lê o arquivo recebido (via upload) do disco e o converte para o formato Base64.
+      // Salvamos o Base64 no MongoDB para não depender do disco do servidor (útil em deploys efêmeros como Render)
       const fs = require('fs');
       let fileDataBase64 = null;
       let fileMimeType = null;
@@ -77,7 +77,7 @@ class ActivityController {
 
   // ------------------------------------------------------------------------
   // LISTAR TODAS (GET /api/v1/activities)
-  // Aceita query params: ?status=PENDING&courseId=xxx
+  // Aceita parâmetros de busca (query): ?status=PENDING&courseId=xxx
   // ------------------------------------------------------------------------
   async getAllActivities(req, res) {
     try {

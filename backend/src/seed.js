@@ -7,19 +7,21 @@ const connectDB = require('./config/db');
 
 const seedData = async () => {
   try {
-    // Garantir uso da URI correta do .env
+    // Garantir uso da URI correta do .env para a conexão com o MongoDB
     if (!process.env.MONGO_URI) {
       throw new Error("ERRO FATAL: MONGO_URI não definida no .env. Não é seguro usar fallback hardcoded.");
     }
     
     await connectDB();
     console.log('--- Iniciando limpeza do banco de dados ---');
+    // Limpando dados antigos para evitar duplicações durante a alimentação inicial
     await User.deleteMany({});
     await Course.deleteMany({});
     await Activity.deleteMany({});
     console.log('Coleções limpas com sucesso.');
 
     console.log('--- Inserindo Super Admin ---');
+    // Criando o usuário administrador supremo com permissão total no sistema
     const superAdmin = new User({
       name: 'Gabriel França',
       email: 'gabrielfranca172@gmail.com',
@@ -94,7 +96,7 @@ const seedData = async () => {
     const todosCursos = [gastronomia, ads, jogos];
     const alunos = [];
     
-    // 10 alunos para cada curso
+    // Inserindo 10 alunos fictícios para cada curso para testes de volume e funcionalidades
     for (const curso of todosCursos) {
       for (let i = 1; i <= 10; i++) {
         const aluno = new User({
