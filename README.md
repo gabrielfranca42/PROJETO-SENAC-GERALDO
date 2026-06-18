@@ -491,6 +491,29 @@ A GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pu
 
 ---
 
+## 👥 Team & Academic Context
+
+This project was developed as an academic integrative project (Projeto Integrador) at **SENAC Recife** for the Systems Analysis and Development program.
+
+**Advisor (Orientador):**
+- Geraldo (Mobile)
+
+**Team Members (Integrantes):**
+- Gabriel
+- Eduardo
+- Caio Victo
+- Wendel Barbosa
+- Marcelo Barbosa
+- Enzo
+
+---
+
+## 🚀 Future Features
+
+- **Gemini AI Integration:** Implementation of Gemini (Implementação do Gemini) to enhance the system's capabilities.
+
+---
+
 ## 📄 License
 
 This project was developed as an academic integrative project (Projeto Integrador) at **SENAC Recife** for the Systems Analysis and Development program.
